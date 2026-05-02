@@ -31,7 +31,7 @@ def crop_board(image: np.ndarray) -> Optional[np.ndarray]:
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
     blurred = cv2.GaussianBlur(gray, (5, 5), 0)
-    edges = cv2.Canny(blurred, threshold1=250, threshold2=750)
+    edges = cv2.Canny(blurred, threshold1=200, threshold2=600)
 
     cv2.imshow("edges", edges)
     cv2.waitKey(0)
@@ -128,7 +128,7 @@ def crop_board(image: np.ndarray) -> Optional[np.ndarray]:
 
     return cropped
 
-def cluster_by_bottom(vertical_lines, threshold=50):
+def cluster_by_bottom(vertical_lines, threshold=10):
     """
     Find clusters of vertical lines by their bottom-most y-value.
     Used in detect_board_edges().
@@ -176,35 +176,44 @@ def cluster_score(cluster):
 def get_color_matrix(image: np.ndarray) -> list[list[float]]:
     """
     Get a 10x20 matrix of average colors from the cropped board image.
-    NOTE: Perhaps start filling in minos from the bottom up.
-    - Change the division of y-axis using x-width, and count upwards until reaching 0.
     """
 
     rows, cols = BOARD_ROWS, BOARD_COLS
     h, w, _ = image.shape
 
-    cell_h = h // rows
     cell_w = w // cols
-
-    offset_y = h - (cell_h * rows)
 
     matrix = []
 
     for r in range(rows):
+        y2 = h - r * cell_w
+        y1 = h - (r + 1) * cell_w
+
+        if y1 < 0:
+            break
+
         row_colors = []
+
         for c in range(cols):
-            y1 = offset_y + r * cell_h
-            y2 = offset_y + (r + 1) * cell_h
             x1 = c * cell_w
             x2 = (c + 1) * cell_w
 
-            margin = int(min(cell_h, cell_w) * 0.2)
+            margin = int(min(cell_w, cell_w) * 0.2)
             cell = image[y1+margin:y2-margin, x1+margin:x2-margin]
 
-            mean_color = cell.mean(axis=(0, 1)).tolist()
+            if cell.size == 0:
+                mean_color = [0, 0, 0]
+            else:
+                mean_color = cell.mean(axis=(0, 1)).tolist()
+
             row_colors.append(mean_color)
 
         matrix.append(row_colors)
+
+    while len(matrix) < rows:
+        matrix.append([[0, 0, 0] for _ in range(cols)])
+
+    matrix.reverse()
 
     return matrix
 
@@ -291,7 +300,7 @@ def visualize_board(matrix: list[list[list[int]]], cell_size: int = 20) -> np.nd
 
 def main():
     """testing the functions"""
-    image = cv2.imread("images/test1.png")
+    image = cv2.imread("images/test4.png")
     cropped = crop_board(image)
 
     cv2.imshow("original", image)
