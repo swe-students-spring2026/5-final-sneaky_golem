@@ -7,14 +7,15 @@ import cv2
 import numpy as np
 
 MINO_PALETTE: dict[str, np.ndarray] = {
-    "I": np.array([0, 240, 240]),
-    "O": np.array([241, 239, 47]),
-    "T": np.array([136, 44, 237]),
-    "S": np.array([138, 234, 40]),
-    "Z": np.array([207, 54, 22]),
-    "J": np.array([0, 0, 240]),
-    "L": np.array([221, 164, 34]),
+    "I": np.array([90, 176, 134]),
+    "O": np.array([176, 154, 69]),
+    "T": np.array([152, 69, 150]),
+    "S": np.array([140, 178, 72]),
+    "Z": np.array([164, 61, 61]),
+    "J": np.array([75, 63, 157]),
+    "L": np.array([169, 103, 60]),
     "X": np.array([0, 0, 0]),
+    "G": np.array([66, 66, 66]),
 }
 
 BOARD_COLS = 10
@@ -197,7 +198,8 @@ def get_color_matrix(image: np.ndarray) -> list[list[float]]:
             x1 = c * cell_w
             x2 = (c + 1) * cell_w
 
-            cell = image[y1:y2, x1:x2]
+            margin = int(min(cell_h, cell_w) * 0.2)
+            cell = image[y1+margin:y2-margin, x1+margin:x2-margin]
 
             mean_color = cell.mean(axis=(0, 1)).tolist()
             row_colors.append(mean_color)
@@ -209,14 +211,35 @@ def get_color_matrix(image: np.ndarray) -> list[list[float]]:
 def get_board_matrix(matrix: list[list[float]]) -> list[list[str]]:
     """
     Get a 10x20 matrix of Tetris minos from the color matrix.
-    Not yet implemented.
     """
 
-def visualize_matrix_ascii(matrix: list[list[str]]) -> str:
-    """
-    Return a simple ASCII representation of the board matrix, mainly for debugging purposes.
-    Not yet implemented.
-    """
+    board = []
+
+    for row in matrix:
+        board_row = []
+
+        for color in row:
+            color_np = np.array(color)
+
+            if np.mean(color_np) < EMPTY_LIGHTNESS_THRESHOLD:
+                board_row.append("X")
+                continue
+
+            best_mino = None
+            best_dist = float("inf")
+
+            for mino, palette_color in MINO_PALETTE.items():
+                dist = np.linalg.norm(color_np - palette_color)
+
+                if dist < best_dist:
+                    best_dist = dist
+                    best_mino = mino
+
+            board_row.append(best_mino)
+
+        board.append(board_row)
+
+    return board
 
 def visualize_matrix_avg_color(matrix: list[list[list[float]]], cell_size: int = 20) -> np.ndarray:
     """
@@ -241,6 +264,31 @@ def visualize_matrix_avg_color(matrix: list[list[list[float]]], cell_size: int =
 
     return img
 
+def visualize_board(matrix: list[list[list[int]]], cell_size: int = 20) -> np.ndarray:
+    """
+    Convert the board matrix to an image with the colors, for easy visualization.
+    """
+
+    rows = len(matrix)
+    cols = len(matrix[0])
+
+    img = np.zeros((rows * cell_size, cols * cell_size, 3), dtype=np.uint8)
+
+    for r in range(rows):
+        for c in range(cols):
+            mino = matrix[r][c]
+
+            color = MINO_PALETTE.get(mino, MINO_PALETTE["X"]).astype(np.uint8)
+
+            y1 = r * cell_size
+            y2 = (r + 1) * cell_size
+            x1 = c * cell_size
+            x2 = (c + 1) * cell_size
+
+            img[y1:y2, x1:x2] = color
+
+    return img
+
 def main():
     """testing the functions"""
     image = cv2.imread("images/test1.png")
@@ -252,8 +300,19 @@ def main():
     cv2.imshow("cropped", cropped)
     cv2.waitKey(0)
 
-    averaged_colors = visualize_matrix_avg_color(get_color_matrix(cropped))
+    color_matrix = get_color_matrix(cropped)
+
+    averaged_colors = visualize_matrix_avg_color(color_matrix)
     cv2.imshow("averaged colors", averaged_colors)
     cv2.waitKey(0)
+
+    board_matrix = get_board_matrix(color_matrix)
+
+    reconstructed_board = visualize_board(board_matrix)
+
+    cv2.imshow("reconstructed board", reconstructed_board)
+    cv2.waitKey(0)
     cv2.destroyAllWindows()
+
+    print(board_matrix)
 main()
