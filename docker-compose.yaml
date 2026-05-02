@@ -1,0 +1,13 @@
+version: "3.9"
+
+services:
+  mongodb:
+    image: mongo:7
+    container_name: golem-db
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  mongo_data:
