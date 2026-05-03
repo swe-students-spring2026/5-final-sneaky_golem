@@ -1,0 +1,15 @@
+.import-export {
+    width: 165px;
+    margin-top: 30px;
+    margin-right: 40px;
+}
+
+.imports {
+    display: flex;
+    flex-direction: column;
+}
+
+.exports {
+    display: flex;
+    flex-direction: column;
+}
