@@ -1,0 +1,99 @@
+@font-face {
+	font-family: Muro;
+	src: url('../assets/fonts/Muroslant.otf');
+}
+@font-face {
+	font-family: Hun;
+	src: 'https://tetr.io/res/font/hun2.ttf?v=9';
+}
+@font-face {
+	font-family: SLANT;
+	src: url('../assets/fonts/Sunmoreslantfree-DOMDx.ttf');
+}
+* {
+    touch-action: manipulation;
+}
+body, body * {
+  -webkit-touch-callout: none; /* iOS Safari */
+  -webkit-user-select: none; /* Safari */
+  -khtml-user-select: none; /* Konqueror HTML */
+  -moz-user-select: none; /* Old versions of Firefox */
+  -ms-user-select: none; /* Internet Explorer/Edge */
+  user-select: none; /* Standard syntax */
+}
+
+
+body {
+    font-family: SLANT;
+}
+.queue {
+	text-align: center;
+	font-family: Muro;
+	font-size: 28px;
+	letter-spacing: 2px;
+}
+.canvas {
+	vertical-align: top;
+}
+.button {
+	display: block;
+	background-color: #222;
+	border: 2px solid white;
+	padding: 6px;
+	color: white;
+	font-family: SLANT;
+	text-align: center;
+	text-decoration: none;
+	display: inline-block;
+	font-size: 12px;
+	letter-spacing: 2px;
+	margin: 4px 2px;
+	transition-duration: 0.4s;
+	cursor: pointer;
+}
+
+.button:hover {
+	background-color: #4caf50; /* Green */
+	margin: 4px 2px;
+}
+
+input[type='radio'] {
+	display: none;
+}
+
+footer {
+	width: 100%;
+}
+
+
+
+.tc {
+	position: absolute;
+	bottom: 0;
+    left: 0;
+	text-align: right;
+	padding: 10px;
+	pointer-events: none;
+	z-index: 11;
+    display: none;
+}
+.tc span {
+	width: 90px;
+	height: 90px;
+	border: 3px solid #fff;
+	background-color: #87cefa;
+	opacity: 0.4;
+	margin: 6px 1px;
+	vertical-align: text-bottom;
+	pointer-events: auto;
+	padding: 15px 17px;
+	display: inline-block;
+}
+.tc span.tc-active {
+	opacity: 1;
+}
+.tc span svg {
+	width: 80px;
+	height: 80px;
+	pointer-events: none;
+}

@@ -1,0 +1,212 @@
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<style>
+	@font-face {
+		font-family: Mikado;
+		src: url('MikadoMedium.ttf');
+	}
+	body {
+		text-align: center;
+		font-family: Mikado;
+	}
+	kbd {
+		background-color: #ddd;
+		border-radius: 3px;
+		border: 1px solid #ccc;
+		box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2), 0 2px 0 0 rgba(255, 255, 255, 0.7) inset;
+		color: #333;
+		display: inline-block;
+		font-size: 18px;
+		line-height: 1;
+		padding: 2px 4px;
+		white-space: nowrap;
+		cursor: pointer;
+	}
+	a {
+		transition: background-color 0.3s;
+		background-color: #222;
+		border-radius: 10px;
+		padding-left: 20px;
+		padding-right: 20px;
+		padding-top: 10px;
+		padding-bottom: 10px;
+	}
+	a:hover {
+		background-color: rgb(37, 83, 153);
+		cursor: pointer;
+	}
+	.input {
+		text-align: center;
+	}
+	input {
+		text-align: center;
+	}
+</style>
+
+<body style="background-color: #333; color: #eee">
+	<div style="font-size: 30px; top: 50%; left: 50%; position: fixed; transform: translate(-50%, -50%)">
+		<table style="font-size: 24px">
+			<th>Controls</th>
+			<th>Key</th>
+			<tr>
+				<td>Move Left</td>
+				<td class="input"><kbd id="1">ArrowLeft</kbd></td>
+			</tr>
+
+			<tr>
+				<td>Move Right</td>
+				<td class="input"><kbd id="2">ArrowRight</kbd></td>
+			</tr>
+
+			<tr>
+				<td>Soft Drop</td>
+				<td class="input"><kbd id="3">ArrowDown</kbd></td>
+			</tr>
+
+			<tr>
+				<td>Hard Drop</td>
+				<td class="input"><kbd id="4">Space</kbd></td>
+			</tr>
+
+			<tr>
+				<td>Swap Hold</td>
+				<td class="input"><kbd id="5">Shift</kbd></td>
+			</tr>
+
+			<tr>
+				<td>Rotate Clockwise</td>
+				<td class="input"><kbd id="6">KeyX</kbd></td>
+			</tr>
+
+			<tr>
+				<td>Rotate Counterclockwise</td>
+				<td class="input"><kbd id="7">KeyZ</kbd></td>
+			</tr>
+
+			<tr>
+				<td>Rotate 180°</td>
+				<td class="input"><kbd id="8">KeyC</kbd></td>
+			</tr>
+
+			<tr>
+				<td>Restart</td>
+				<td class="input"><kbd id="9">KeyR</kbd></td>
+			</tr>
+
+			<tr></tr>
+			<tr>
+				<td>Undo</td>
+				<td class="input"><kbd id="10">KeyT</kbd></td>
+			</tr>
+
+			<tr></tr>
+			<tr>
+				<td>Redo</td>
+				<td class="input"><kbd id="11">KeyY</kbd></td>
+			</tr>
+
+			<tr>
+				<td>[DAS] Delayed Auto Shift</td>
+				<td class="numinput"><input type="number" id="das" max="750" value="160" /></td>
+			</tr>
+
+			<tr>
+				<td>[ARR] Auto Repeat Rate</td>
+				<td class="numinput"><input type="number" id="arr" max="500" value="30" /></td>
+			</tr>
+
+			<tr>
+				<td>[SDR] Soft Drop Rate</td>
+				<td class="numinput"><input type="number" id="sdr" max="250" value="15" /></td>
+			</tr>
+
+			<tr>
+				<th>Other Settings</th>
+				<th>Value</th>
+			</tr>
+
+			<tr>
+				<td>Cell Size - Pixels</td>
+				<td class="numinput"><input type="number" id="cellpx" min="3" value="20" /></td>
+			</tr>
+            <tr>
+				<td>Audio Level</td>
+				<td class="numinput"><input type="number" id="audiolevel" min="0" max="100" value="100" /></td>
+			</tr>
+
+			<tr></tr>
+		</table>
+
+		<br />
+		<a onclick="window.close()">Save & Close</a>
+		<a onclick="delete LS.version; delete LS.config; location.reload()">Reset to Defaults</a>
+	</div>
+</body>
+
+<script>
+	const print = console.log;
+	const LS = localStorage;
+	var ctrlDat = [
+		'ArrowLeft',
+		'ArrowRight',
+		'ArrowDown',
+		'Space',
+		'ShiftLeft',
+		'KeyX',
+		'KeyZ',
+		'KeyC',
+		'KeyR',
+		'KeyT',
+		'KeyY',
+		'160',
+		'30',
+		'15',
+		'20',
+        '100',
+	];
+	var ctrlsDat = LS.config;
+
+	if (ctrlsDat && LS.version == '2023-05-02a') {
+		var ctrls = JSON.parse(ctrlsDat);
+		for (let i = 0; i < 11; i++) {
+			var c = ctrls[i];
+			ctrlDat[i] = c;
+			$(`#${i + 1}`).html(c.length == 1 ? c.toUpperCase() : c);
+		}
+		['das', 'arr', 'sdr', 'cellpx', 'audiolevel'].map((id, idx) => {
+			var ipt = document.getElementById(id);
+			var val = parseInt(ctrls[idx + 11]);
+			ipt.value = val;
+			ctrlDat[idx + 11] = val;
+		});
+	}
+
+	function saveCtrls() {
+		LS.config = JSON.stringify(ctrlDat);
+		LS.version = '2023-05-02a';
+	}
+
+	for (let i = 1; i <= 11; i++) {
+		document.getElementById(i).onclick = function () {
+			const b = document.getElementById(i);
+			if (b.innerHTML == 'Press a key...') return;
+			b.innerHTML = 'Press a key...';
+
+			document.addEventListener('keydown', respond);
+			function respond(e) {
+				var k = e.code;
+				ctrlDat[i - 1] = k;
+				b.innerHTML = k;
+				saveCtrls();
+				document.removeEventListener('keydown', respond);
+			}
+		};
+	}
+	['das', 'arr', 'sdr', 'cellpx','audiolevel'].map((i, idx) => {
+		var ipt = document.getElementById(i);
+		ipt.oninput = function (e) {
+			var val = ipt.value ? ipt.value : '0';
+			ctrlDat[idx + 11] = val;
+			saveCtrls();
+		};
+	});
+</script>

@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 # import requests
 from bson.objectid import ObjectId
 from flask_login import UserMixin #, current_user
-from werkzeug.security import generate_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
 from pymongo import MongoClient
 from pymongo.errors import PyMongoError
 
@@ -23,6 +23,15 @@ class User(UserMixin):
         self.username = user_doc["username"]
         # self.password = user_doc["password"]
         # self.... = user_doc["..."]
+
+class Puzzle():
+    def __init__(self, puzzle_doc):
+        self.puzzle_id = str(puzzle_doc["_id"]),
+        self.puzzle_name = puzzle_doc["puzzle_name"],
+        self.author_id = str(puzzle_doc["author_id"]),
+        self.created_at = str(puzzle_doc["created_at"]),
+        self.is_public = puzzle_doc["is_public"],
+        self.like_count = puzzle_doc["like_count"]
 
 def get_db():
     """
@@ -69,6 +78,10 @@ def get_user_by_id(user_id):
         print("Error loading user %s: %s", user_id, exc)
         return None
 
+def _get_user_doc_by_username(username):
+    db = get_db()
+    return db.users.find_one({"username": username})
+
 def get_user_by_username(username):
     """
     Look up user by their username.
@@ -80,3 +93,35 @@ def get_user_by_username(username):
     except PyMongoError as exc:
         print("Error looking up username %s: %s", username, exc)
         return None
+
+def authenticate_user(username, password):
+    """
+    Authenticate a user by their username and password.
+    """
+    doc = _get_user_doc_by_username(username)
+    if not doc:
+        return None
+    if not check_password_hash(doc["password"], password):
+        return None
+    return User(doc)
+
+def temp_puzzle():
+    db = get_db()
+    doc = {
+        "puzzle_name": "Puzzle 1",
+        "author_id": "TEST!",
+        "created_at": datetime(2026, 5, 4, 4, 10, 23),
+        "is_public": True,
+        "like_count": 42,
+    }
+    result = db.puzzles.insert_one(doc)
+    doc["_id"] = result.inserted_id
+    return Puzzle(doc)
+
+def get_puzzles():
+    db = get_db()
+    return list(db.puzzles.find({}))
+
+def get_puzzle_by_id(id):
+    db = get_db()
+    return db.puzzles.find({'_id': ObjectId(id)})
