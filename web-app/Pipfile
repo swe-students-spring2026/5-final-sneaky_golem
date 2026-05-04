@@ -8,6 +8,7 @@ flask-login = "*"
 requests = "*"
 flask = {extras = ["async"], version = "*"}
 pymongo = "*"
+python-dotenv = "*"
 
 [dev-packages]
 
