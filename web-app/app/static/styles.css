@@ -54,8 +54,6 @@ a {
     font-size: 22px;
     letter-spacing: 1px;
     margin-bottom: 32px;
-    border-left: 3px solid #fff;
-    padding-left: 12px;
 }
 
 .btn {
@@ -446,4 +444,152 @@ a {
     color: #888;
     padding: 0 4px;
     letter-spacing: 2px;
+}
+
+.import-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-width: 640px;
+}
+
+.import-drop-zone {
+    border: 1px solid #fff;
+    min-height: 240px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.import-drop-zone:hover .import-drop-inner {
+    opacity: 0.6;
+}
+
+.import-drop-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 40px;
+}
+
+.import-drop-label {
+    font-size: 18px;
+    letter-spacing: 3px;
+}
+
+.import-drop-hint {
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: #888;
+}
+
+.import-preview {
+    width: 100%;
+    display: block;
+}
+
+.import-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.import-status {
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: #888;
+}
+
+.hidden {
+    display: none;
+}
+
+.import-wrap {
+    max-width: 560px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.import-zone {
+    border: 1px solid #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 48px 24px;
+    cursor: pointer;
+    text-align: center;
+}
+
+.import-zone:hover {
+    background: #fff;
+    color: #000;
+}
+
+.import-zone-hint {
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: #888;
+}
+
+.import-zone:hover .import-zone-hint {
+    color: #444;
+}
+
+.import-file-input {
+    display: none;
+}
+
+.import-preview {
+    border: 1px solid #fff;
+}
+
+.import-preview-img {
+    display: block;
+    max-width: 100%;
+    max-height: 400px;
+    object-fit: contain;
+}
+
+.import-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.import-form {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 24px;
+}
+
+.import-file-input {
+    display: none;
+}
+
+.import-label {
+    display: inline-block;
+    margin-top: 8px;
+}
+
+.import-preview-wrap {
+    display: none;
+    border: 1px solid #fff;
+}
+
+.import-preview-visible {
+    display: block;
+}
+
+.import-preview {
+    display: block;
+    max-width: 600px;
+    max-height: 400px;
 }

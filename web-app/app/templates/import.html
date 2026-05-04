@@ -1,0 +1,25 @@
+{% extends "template.html" %}
+
+{% block title %}Import Board{% endblock %}
+
+{% block content %}
+<h1 class="page-title">IMPORT BOARD</h1>
+
+<form class="import-form" action="/board/import" method="POST" enctype="multipart/form-data">
+    <div>
+        <label class="sidebar-label">SELECT IMAGE</label>
+        <label for="import-file" class="btn import-label">CHOOSE FILE</label>
+        <input id="import-file" name="image" type="file" accept="image/*" class="import-file-input">
+    </div>
+
+    <div id="import-preview-wrap" class="import-preview-wrap">
+        <img id="import-preview" class="import-preview" alt="Preview">
+    </div>
+
+    <button type="submit" id="import-confirm" class="btn" disabled>CONFIRM</button>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/import.js"></script>
+{% endblock %}
