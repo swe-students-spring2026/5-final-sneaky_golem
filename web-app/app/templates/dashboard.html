@@ -1,0 +1,51 @@
+{% extends "template.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<h1 class="page-title">Dashboard</h1>
+
+<div class="section">
+    <div class="section-header">
+        <span class="section-title">New</span>
+    </div>
+    <div class="grid-3">
+        <a href="/board/new" class="box action-box">NEW BOARD</a>
+        <a href="/board/import" class="box action-box">IMPORT BOARD</a>
+        <a href="/community" class="box action-box">COMMUNITY BOARDS</a>
+    </div>
+</div>
+
+<div class="section">
+    <div class="section-header">
+        <span class="section-title">Saved Boards</span>
+        <a href="/boards" class="btn">View All</a>
+    </div>
+    <div class="grid-2">
+        {% for puzzle in saved_boards %}
+        <a href="/board/{{ puzzle.puzzle_id }}" class="box" style="display:block;">
+            <strong>{{ puzzle.puzzle_name }}</strong><br>{{ puzzle.created_at }}
+        </a>
+        {% else %}
+        <p>No saved boards yet.</p>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="section">
+    <div class="section-header">
+        <span class="section-title">Recent Community Boards</span>
+        <a href="/community" class="btn">View All</a>
+    </div>
+    <div class="grid-3">
+        {% for puzzle in community_boards %}
+        <a href="/community/board/{{ puzzle.puzzle_id }}" class="box" style="display:block;">
+            <div class="box-label">by {{ puzzle.author_username }} &nbsp;·&nbsp; {{ puzzle.created_at }}</div>
+            <div>{{ puzzle.puzzle_name }}</div>
+        </a>
+        {% else %}
+        <p>No community boards yet.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
