@@ -7,8 +7,10 @@ name = "pypi"
 flask-login = "*"
 requests = "*"
 flask = {extras = ["async"], version = "*"}
+pymongo = "*"
+python-dotenv = "*"
 
 [dev-packages]
 
 [requires]
-python_version = "3.14"
+python_version = "3.10"
