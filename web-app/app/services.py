@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 # import requests
 from bson.objectid import ObjectId
 from flask_login import UserMixin #, current_user
-from werkzeug.security import generate_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
 from pymongo import MongoClient
 from pymongo.errors import PyMongoError
 
@@ -69,6 +69,10 @@ def get_user_by_id(user_id):
         print("Error loading user %s: %s", user_id, exc)
         return None
 
+def _get_user_doc_by_username(username):
+    db = get_db()
+    return db.users.find_one({"username": username})
+
 def get_user_by_username(username):
     """
     Look up user by their username.
@@ -80,3 +84,14 @@ def get_user_by_username(username):
     except PyMongoError as exc:
         print("Error looking up username %s: %s", username, exc)
         return None
+
+def authenticate_user(username, password):
+    """
+    Authenticate a user by their username and password.
+    """
+    doc = _get_user_doc_by_username(username)
+    if not doc:
+        return None
+    if not check_password_hash(doc["password"], password):
+        return None
+    return User(doc)

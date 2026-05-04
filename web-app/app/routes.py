@@ -14,12 +14,13 @@ from flask import (
 # import jsonify
 
 from flask_login import login_user, logout_user, login_required, current_user
-from werkzeug.security import check_password_hash
+# from werkzeug.security import check_password_hash
 # import requests
 
 from app.services import (
     get_user_by_username,
     create_user,
+    authenticate_user,
 )
 
 main = Blueprint('main', __name__)
@@ -30,15 +31,11 @@ def login():
     GET: Render login page
     POST: Check credentials, if correct, then go to dashboard
     """
-    if current_user.is_authenticated:
-        return redirect(url_for("main.dashboard"))
-
     if request.method == "POST":
         username = request.form.get("username", "").strip()
         password = request.form.get("password", "")
-
         user = get_user_by_username(username)
-        if user and check_password_hash(user['password'], password):
+        if user and authenticate_user(username, password):
             login_user(user)
             print("User logged in: %s", username)
             next_page = request.args.get("next")
@@ -55,9 +52,6 @@ def register():
     GET: Render register page
     POST: Create new user, redirect to login
     """
-    if current_user.is_authenticated:
-        return redirect(url_for("main.dashboard"))
-
     if request.method == "POST":
         username = request.form.get("username", "").strip()
         password = request.form.get("password", "")
