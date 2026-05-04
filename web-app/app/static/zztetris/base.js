@@ -3,7 +3,7 @@ const LS = localStorage; // client side data storage
 
 function ctrlsPopup() { // opens a popup window with keybinds
 
-	const p = window.open('controls.html', 'popup', 'width=1200,height=800');
+	const p = window.open('controls', 'popup', 'width=1200,height=800');
 	var reloading = false;
 
 	setInterval(() => {
@@ -387,11 +387,24 @@ document.getElementById('n').addEventListener('click', (event) => {
 		//sanitization
 		if ('SZLJIOT'.includes(QueueInput[i])) temp.push(QueueInput[i]);
 	}
+	queue = [];
+	for(let i = 0; i < temp.length; i++){
+		if(i != 0 && i % 6 == 0){
+			queue.push("|");
+		}
+		queue.push(temp[i]);
+	}
+	if(queue[queue.length-1] != "|" && queue.length > 0){
+		queue.push("|")
+	}
+	newPiece();
+	/*
 	if (temp.length > 0) {
 		temp.push('|'); // could probably insert one every 7 pieces but am too lazy
 		queue = temp;
 		newPiece();
 	}
+		*/
 	updateHistory();
 });
 
@@ -452,6 +465,9 @@ function updateGhost() {
 }
 
 function canMove(p, x, y) {
+	if(queue.length == 0){
+		return false
+	}
 	var free = 0;
 	for (let row = 0; row < 4; row++) {
 		for (let cell = 0; cell < 4; cell++) {
@@ -472,13 +488,18 @@ function checkTopOut() {
 			if (p[r][c] != 0) {
 				if (board[r + yPOS][c + xPOS].t == 1) {
 					notify('TOP OUT');
+					return true;
 				}
 			}
 		}
 	}
+	return false
 }
 
 function setShape(hd) {
+	if(queue.length == 0){
+		return
+	}
 	var p = pieces[piece][rot];
 	p.map((r, i) => {
 		r.map((c, ii) => {
@@ -502,27 +523,38 @@ function clearActive() {
 	});
 }
 
+//important
+var firstGen = true
 function newPiece() {
-	while (queue.length < 10) {
-		var shuf = names.shuffle();
-		shuf.map((p) => queue.push(p));
-		queue.push('|');
+	if(firstGen){
+		while (queue.length < 10) { //what generates the new piece
+			var shuf = names.shuffle();
+			shuf.map((p) => queue.push(p));
+			queue.push('|');
+		}
+		firstGen = false
 	}
 	xPOS = spawn[0];
 	yPOS = spawn[1];
 	rot = 0;
 	if (queue[0] == '|') queue.shift();
 	piece = queue.shift();
-	checkTopOut();
-	updateQueue();
-	updateGhost();
-	setShape();
+	if(queue.length > 0){
+		if(checkTopOut()){
+			endPuzzle()
+			queue = [];
+		}
+		updateQueue();
+		updateGhost();
+		setShape();
+	}
 
 	if (keysDown & flags.L) {
 		lastKeys = keysDown;
 	} else if (keysDown & flags.R) {
 		lastKeys = keysDown;
 	}
+	console.log("ran");
 }
 
 function notify(text) {
@@ -705,6 +737,7 @@ function callback(gravity=700, special_restart=false, cheese=false) {
 					break;
 				case 'RE':
 					restart();
+					console.log("WE GO AGANE");
 					break;
 				case 'UNDO':
 					undo();
@@ -798,7 +831,10 @@ function callback(gravity=700, special_restart=false, cheese=false) {
 	}, gravity);
 
 	function playSnd(sfx, overlap) {
-		const s = sfxCache[sfx] ??= new Audio(`assets/sfx/${sfx}.wav`);
+		if(queue.length == 0){
+			return
+		}
+		const s = sfxCache[sfx] ??= new Audio(`static/zztetris/assets/sfx/${sfx}.wav`);
 		if (overlap) {
 			s.currentTime = 0
 		}
@@ -808,6 +844,9 @@ function callback(gravity=700, special_restart=false, cheese=false) {
 
 
 	function move(dir) {
+		if(queue.length == 0){
+			return
+		}
 		switch (dir) {
 			case 'L':
 				if (canMove(pieces[piece][rot], xPOS - 1, yPOS)) {
@@ -937,6 +976,9 @@ function callback(gravity=700, special_restart=false, cheese=false) {
 		clearActive();
 		
 		cleared = checkLines();
+		if(queue.length == 1){
+			endPuzzle();
+		}
 		newPiece();
 
         if (cheese) {
@@ -959,7 +1001,7 @@ function callback(gravity=700, special_restart=false, cheese=false) {
         }
 
 		updateHistory();
-		console.log(board)
+		logBoard();
 	}
 
 	function hold() {

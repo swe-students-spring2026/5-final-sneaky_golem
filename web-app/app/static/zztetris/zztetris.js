@@ -1,3 +1,7 @@
+let queueData = [];
+let boardStart = [];
+let log = [];
+
 function restart() {
 	if (board[board.length - 1].filter((c) => c.t != 1).length == boardSize[0]) {
 		// lazy check, will have false positives, but whatever
@@ -14,11 +18,10 @@ function restart() {
 			histPos = 0;
 		}
 	}
-	board = [];
-	for (let i = 0; i < boardSize[1]; i++) {
-		board.push(aRow());
-	}
-	queue = [];
+	board = structuredClone(boardStart);
+	console.log(boardStart);
+	//console.log(queueData);
+	queue = [...queueData];
 	rot = 0;
 	piece = '';
 	holdP = '';
@@ -31,6 +34,7 @@ function restart() {
 	combo = -1;
     oldb2b = b2b;
 	b2b = -1;
+	log = [];
 	newPiece();
 }
 
@@ -38,6 +42,8 @@ function updateQueue() {
 	temp = false;
 	ctxN.clearRect(0, 0, 90, 360);
 	ctxH.clearRect(0, 0, 90, 60);
+	print(queue);
+	//notes to self. Generates a set of 6, then a | to indicate that another 6 needs to be generated. Never hits 6 pieces. Always adds more if 6 is hit
 	for (let i = 0; i < 7; i++) {
 		if (queue[i] == '|') {
 			ctxN.beginPath();
@@ -48,7 +54,9 @@ function updateQueue() {
 		} else {
 			j = i;
 			if (temp) j--;
-			ctxN.drawImage(imgs[queue[i]], 0, j * 60);
+			if(imgs[queue[i]]){
+				ctxN.drawImage(imgs[queue[i]], 0, j * 60);
+			}
 		}
 	}
 	if (holdP) ctxH.drawImage(imgs[holdP], 0, 0);
@@ -108,6 +116,52 @@ function shuffleQueuePlusHold() {
 	updateGhost();
 	setShape();
 	updateHistory();
+	restart();
+}
+
+function setBoard(){
+	newPiece();
+	const data = prompt("Please enter a queue:");
+	const data2 = prompt("Please enter a board:").replace(/'/g, '"');;
+	parseBoard(JSON.parse(data2));
+	boardStart = structuredClone(board);
+	const dataArr = data.split('');
+	queue = [];
+	for(let i = 0; i < dataArr.length; i++){
+		if(i % 6 == 0 && i != 0){
+			queue.push('|')
+		}
+		queue.push(dataArr[i].toUpperCase());
+	}
+	/*
+	while (queue.length < 10) {
+		var shuf = names.shuffle();
+		shuf.map((p) => queue.push(p));
+		queue.push('|');
+	}
+		*/
+	if(queue.length > 0 && queue[queue.length-1] != '|'){
+		queue.push('|');
+	}
+	xPOS = spawn[0];
+	yPOS = spawn[1];
+	rot = 0;
+	queueData = [...queue];
+	clearActive();
+	checkTopOut();
+	updateQueue();
+	updateGhost();
+	setShape();
+	updateHistory();
+	newPiece();
+}
+
+function logBoard(){
+	log.push(structuredClone(board));
+}
+
+function endPuzzle(){
+	console.log("wraps");
 }
 
 function updateKickTable() {

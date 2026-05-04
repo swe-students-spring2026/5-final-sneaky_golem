@@ -10,4 +10,11 @@ async def tetris_board():
     """
     Retrieves playable tetris board.
     """
-    return render_template("zztetris/index.html")
+    return render_template("zztetris/index.html");
+
+@main.route("/controls", methods=["GET"])
+async def controls():
+    """
+    Retrieves controls.
+    """
+    return render_template("zztetris/controls.html");

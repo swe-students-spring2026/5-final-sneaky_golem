@@ -31,23 +31,6 @@
 	</head>
 	<body style="background-color: #222; color: #fff">
 		<div style="top: 50%; left: 50%; position: fixed; transform: translate(-50%, -50%); display: flex">
-			<div class="import-export">
-				<div class="exports">
-					<h3>Export To</h3>
-					<button class="button" onclick="this.blur(); exportFumen()">Fumen</button>
-					<button class="button" onclick="this.blur(); exportFullFumen()">Full Fumen</button>
-					<button class="button" onclick="this.blur(); exportTetrio()">TETRIO</button>
-				</div>
-
-				<div class="imports">
-					<h3>Import From</h3>
-					<button class="button" onclick="this.blur(); importFumen()">Fumen</button>
-					<button class="button" onclick="this.blur(); importFullFumen()">Full Fumen</button>
-					<button class="button" onclick="this.blur(); importTetrio()">TETRIO</button>
-					<button class="button" onclick="this.blur(); importImageButton()">Image</button>
-				</div>
-			</div>
-
 			<div class="queue">
 				HOLD
 				<hr />
@@ -68,8 +51,8 @@
 			<div class="board-settings">
 				<h3>Options</h3>
 				<button class="button button--shuffle" onclick="this.blur(); shuffleQueue();">Queue</button>
-				<button class="button button--shuffle" onclick="this.blur(); shuffleQueuePlusHold();">
-					Queue + Hold
+				<button class="button button--shuffle" onclick="this.blur(); setBoard();">
+					Set Board
 				</button>
 
 				<button class="button" onclick="this.blur(); mirror()">Mirror</button>
@@ -149,12 +132,6 @@
 
 		<a class="button" target="_blank" href="https://github.com/swng/zztetris#readme">About</a>
 		<button class="button" target="popup" onclick="ctrlsPopup()">Game Settings</button>
-        <a class="button">button that does nothing</a>
-        <a class="button" href="index.html">practice</a>
-        <a class="button" href="cheese.html">cheese</a>
-        <a class="button" href="4w.html">4w</a>
-        <a class="button" href="grav.html">grav</a>
-        <a class="button" href="pc.html">pc</a>
 
         <div id = "tcc" style class = "tc">
             <div>
