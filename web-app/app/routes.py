@@ -82,7 +82,7 @@ def logout():
     """
     logout_user()
     flash('You have been logged out.')
-    return redirect(url_for('login'))
+    return redirect(url_for('main.login'))
 
 @main.route("/", methods=["GET"])
 @login_required
