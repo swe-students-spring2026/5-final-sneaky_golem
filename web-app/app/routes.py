@@ -117,7 +117,6 @@ def dashboard():
     )
 
 
-
 @main.route("/community/board/<puzzle_id>")
 @login_required
 def community_puzzle(puzzle_id):
@@ -139,7 +138,9 @@ def community_puzzle(puzzle_id):
         puzzle=puzzle,
         board_json=json.dumps(puzzle.get("board_json")),
         solutions_json=json.dumps(solutions_list, default=str),
-        active_solution_json=json.dumps(puzzle.get("active_solution_json"), default=str),
+        active_solution_json=json.dumps(
+            puzzle.get("active_solution_json"), default=str
+        ),
     )
 
 
@@ -229,6 +230,7 @@ def save_board():
     except ValueError as exc:
         return jsonify({"error": f"Invalid data: {exc}"}), 400
 
+
 def build_page_range(current_page, total_pages):
     """
     Build a list of page numbers with ellipsis for large page counts.
@@ -242,6 +244,7 @@ def build_page_range(current_page, total_pages):
             pages.append("...")
     return pages
 
+
 @main.route("/boards", methods=["GET"])
 @login_required
 def boards():
@@ -254,8 +257,7 @@ def boards():
     search = request.args.get("search", "")
 
     board_list, total = get_user_boards(
-        current_user.id, sort=sort, search=search,
-        public_only=public_only, page=page
+        current_user.id, sort=sort, search=search, public_only=public_only, page=page
     )
     total_pages = max(1, (total + BOARDS_PER_PAGE - 1) // BOARDS_PER_PAGE)
 
@@ -270,6 +272,7 @@ def boards():
         current_page=page,
         page_range=build_page_range(page, total_pages),
     )
+
 
 # to be finished
 @main.route("/community", methods=["GET"])

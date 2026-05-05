@@ -154,6 +154,7 @@ def get_puzzle_by_id(puzzle_id):
     db = get_db()
     return db.puzzles.find_one({"_id": ObjectId(puzzle_id)})
 
+
 def save_puzzle(author_id, puzzle_name, board, is_public=True):
     """
     Persist a board matrix as a puzzle document.
@@ -173,6 +174,7 @@ def save_puzzle(author_id, puzzle_name, board, is_public=True):
     doc["_id"] = result.inserted_id
     return Puzzle(doc)
 
+
 def serialize_board(doc):
     """
     Convert a raw MongoDB puzzle document to a dict with serializable fields.
@@ -187,6 +189,7 @@ def serialize_board(doc):
 
 
 BOARDS_PER_PAGE = 10
+
 
 def get_user_boards(user_id, sort="newest", search="", public_only=False, page=1):
     """
@@ -204,13 +207,14 @@ def get_user_boards(user_id, sort="newest", search="", public_only=False, page=1
     sort_field = {
         "newest": [("created_at", -1)],
         "oldest": [("created_at", 1)],
-        "likes":  [("like_count", -1)],
+        "likes": [("like_count", -1)],
     }.get(sort, [("created_at", -1)])
 
     total = db.puzzles.count_documents(query)
     skip = (page - 1) * BOARDS_PER_PAGE
     docs = db.puzzles.find(query).sort(sort_field).skip(skip).limit(BOARDS_PER_PAGE)
     return [serialize_board(doc) for doc in docs], total
+
 
 def get_community_boards(limit=6):
     """
@@ -223,7 +227,9 @@ def get_community_boards(limit=6):
         board = serialize_board(doc)
         try:
             author_id = doc.get("author_id")
-            user = db.users.find_one({"_id": ObjectId(author_id)}) if author_id else None
+            user = (
+                db.users.find_one({"_id": ObjectId(author_id)}) if author_id else None
+            )
             board["author_username"] = user["username"] if user else "unknown"
         except InvalidId:
             board["author_username"] = "unknown"
@@ -236,5 +242,7 @@ def get_saved_boards(user_id, limit=4):
     Get a small preview of the user's most recent boards for the dashboard.
     """
     db = get_db()
-    docs = db.puzzles.find({"author_id": user_id}).sort([("created_at", -1)]).limit(limit)
+    docs = (
+        db.puzzles.find({"author_id": user_id}).sort([("created_at", -1)]).limit(limit)
+    )
     return [serialize_board(doc) for doc in docs]
