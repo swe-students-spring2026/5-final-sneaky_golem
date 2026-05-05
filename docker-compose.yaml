@@ -10,8 +10,7 @@ services:
       - mongo_data:/data/db
 
   machine-learning-client:
-    build:
-      context: ./machine-learning-client
+    image: ah6820/golem-ml-client:latest
     container_name: golem-ml-client
     ports:
       - "5001:5001"
@@ -19,10 +18,7 @@ services:
       - mongodb
   
   web-app:
-    build:
-      context: ./web-app
-    volumes:
-      - ./web-app:/app
+    image: ah6820/golem-web-app:latest
     container_name: golem-web-app
     ports:
       - "5000:5000"
