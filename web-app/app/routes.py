@@ -397,6 +397,7 @@ def import_board():
     """
     return render_template("import.html")
 
+
 @main.route("/solution/<solution_id>", methods=["GET"])
 @login_required
 def get_solution(solution_id):

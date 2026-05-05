@@ -177,36 +177,6 @@ def share_puzzle(puzzle_id):
     )
 
 
-def update_puzzle(puzzle_id, name, matrix, queue):
-    """
-    Update a puzzle's name, board matrix, and queue.
-    """
-    db = get_db()
-    db.puzzles.update_one(
-        {"_id": ObjectId(puzzle_id)},
-        {"$set": {"puzzle_name": name, "board_json": matrix, "queue_json": queue}},
-    )
-
-
-def rename_puzzle(puzzle_id, name):
-    """
-    Rename a puzzle.
-    """
-    db = get_db()
-    db.puzzles.update_one(
-        {"_id": ObjectId(puzzle_id)}, {"$set": {"puzzle_name": name}}
-    )
-
-
-def delete_puzzle(puzzle_id):
-    """
-    Delete a puzzle and its associated solutions.
-    """
-    db = get_db()
-    db.solutions.delete_many({"puzzle_id": ObjectId(puzzle_id)})
-    db.puzzles.delete_one({"_id": ObjectId(puzzle_id)})
-
-
 def save_puzzle(author_id, puzzle_name, board, queue=None, is_public=True):
     """
     Persist a board matrix as a new puzzle document.
@@ -267,6 +237,7 @@ def delete_puzzle(puzzle_id):
     Permanently delete a puzzle from the database.
     """
     db = get_db()
+    db.solutions.delete_many({"puzzle_id": ObjectId(puzzle_id)})
     db.puzzles.delete_one({"_id": ObjectId(puzzle_id)})
 
 
