@@ -52,7 +52,7 @@ body {
 	cursor: pointer;
 }
 
-.button:hover {
+.button:hover:enabled {
 	background-color: #4caf50; /* Green */
 	margin: 4px 2px;
 }

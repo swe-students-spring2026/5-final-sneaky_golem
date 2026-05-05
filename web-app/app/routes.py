@@ -43,6 +43,8 @@ from app.services import (
     update_username,
     update_password,
     delete_user,
+    update_puzzle_solution,
+    get_solution_by_id
     set_puzzle_public,
     has_liked,
     like_puzzle,
@@ -132,12 +134,15 @@ def dashboard():
     )
 
 
-@main.route("/board/<puzzle_id>")
+@main.route("/board/<puzzle_id>", methods=["GET", "POST"])
 @login_required
 def view_board(puzzle_id):
     """
     Display a puzzle's board, its solutions, and the active solution.
     """
+    if request.method == "POST":
+        data = json.loads(request.form.get("solution-data", ""))
+        update_puzzle_solution(puzzle_id, data, current_user.username)
     puzzle = get_puzzle_by_id(puzzle_id)
     if puzzle is None:
         return "Board not found", 404
@@ -544,6 +549,20 @@ def import_board_confirm():
         )
     except PyMongoError as exc:
         return jsonify({"error": f"Database error: {exc}"}), 500
+    
+
+@main.route("/solution/<solution_id>", methods=["GET"])
+@login_required
+def get_solution(solution_id):
+    """
+    Fetching solution
+    """
+    return json.dumps(get_solution_by_id(solution_id), default=str)
+
+@main.route('/board/solution/<puzzle_id>')
+@login_required
+def puzzle_edit_solution(puzzle_id):
+    return render_template("zztetris/index.html", user=current_user, puzzle=get_puzzle_by_id(puzzle_id), id=puzzle_id)
 
 
 # ---- endpoints for user settings ----

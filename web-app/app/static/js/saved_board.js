@@ -168,11 +168,19 @@
             .then(function (data) {
                 activeSolution = data;
                 currentStep = 0;
+                for(let i = 0; activeSolution.final_board.length > 20; i++){
+                    activeSolution.final_board.shift();
+                }
+                for(let i = 0; i < activeSolution.steps.length; i++){
+                    for(let x = 0; activeSolution.steps[i].length > 20; x++){
+                        activeSolution.steps[i].shift();
+                    }
+                }
 
                 if (activeSolution.steps && activeSolution.steps.length > 0) {
                     renderBoard(activeSolution.steps[0]);
                 } else {
-                    renderBoard(activeSolution.final_board || board);
+                    renderBoard(activeSolution.final_board.splice(0, 20) || board);
                 }
 
                 renderStepCounter();
