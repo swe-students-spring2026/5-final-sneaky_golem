@@ -67,7 +67,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Deploy to Digital Ocean
-        uses: digitalocean/app_action@v1.1.5
+        uses: digitalocean/app_action@v2
         with:
-          app_id: ${{ secrets.DIGITALOCEAN_APP_ID }}
           token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+          app_name: sneaky-golem
