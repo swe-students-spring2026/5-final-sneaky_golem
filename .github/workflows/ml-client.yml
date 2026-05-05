@@ -66,8 +66,10 @@ jobs:
     needs: build-and-push
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy to Digital Ocean
-        uses: digitalocean/app_action@v2
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
         with:
           token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
-          app_name: sneaky-golem
+      
+      - name: Deploy to Digital Ocean
+        run: doctl apps create-deployment fa558e22-a1f8-454b-ac60-4f03d32779b1
