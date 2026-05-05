@@ -34,6 +34,7 @@ from app.services import (
     get_user_boards,
     get_community_boards,
     get_saved_boards,
+    BOARDS_PER_PAGE,
 )
 
 main = Blueprint("main", __name__)
@@ -251,13 +252,12 @@ def boards():
     page = int(request.args.get("page", 1))
     public_only = request.args.get("public_only", "false") == "true"
     search = request.args.get("search", "")
-    per_page = 10
 
     board_list, total = get_user_boards(
         current_user.id, sort=sort, search=search,
-        public_only=public_only, page=page, per_page=per_page
+        public_only=public_only, page=page
     )
-    total_pages = max(1, (total + per_page - 1) // per_page)
+    total_pages = max(1, (total + BOARDS_PER_PAGE - 1) // BOARDS_PER_PAGE)
 
     return render_template(
         "boards.html",

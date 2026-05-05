@@ -11,11 +11,11 @@ from datetime import datetime, timezone
 
 # import requests
 from bson.objectid import ObjectId
+from bson.errors import InvalidId
 from flask_login import UserMixin  # , current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from pymongo import MongoClient
 from pymongo.errors import PyMongoError
-from bson.errors import InvalidId
 
 
 class User(UserMixin):
