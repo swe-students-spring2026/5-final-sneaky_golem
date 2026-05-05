@@ -4,6 +4,7 @@ Tests for auth-related routes: login, register, logout.
 
 # pylint: disable=missing-docstring, redefined-outer-name
 
+
 def test_login_page_loads(client):
     res = client.get("/login")
     assert res.status_code == 200

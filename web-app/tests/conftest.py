@@ -13,10 +13,12 @@ from app import login_manager
 @pytest.fixture
 def app():
     os.environ["SECRET_KEY"] = "test-secret"
-    return create_app(config={
-        "TESTING": True,
-        "SECRET_KEY": "test-secret",
-    })
+    return create_app(
+        config={
+            "TESTING": True,
+            "SECRET_KEY": "test-secret",
+        }
+    )
 
 
 @pytest.fixture

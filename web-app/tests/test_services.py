@@ -36,6 +36,7 @@ def mock_db(mocker):
 
 # ---- create_user ----
 
+
 def test_create_user_success(mock_db, mocker):
     mock_db.users.find_one.return_value = None
     mock_db.users.insert_one.return_value = mocker.MagicMock(inserted_id=ObjectId())
@@ -54,6 +55,7 @@ def test_create_user_duplicate(mock_db):
 
 # ---- get_user_by_id ----
 
+
 def test_get_user_by_id_found(mock_db):
     oid = ObjectId()
     mock_db.users.find_one.return_value = {"_id": oid, "username": "bob"}
@@ -71,6 +73,7 @@ def test_get_user_by_id_not_found(mock_db):
 
 # ---- get_user_by_username ----
 
+
 def test_get_user_by_username_found(mock_db):
     mock_db.users.find_one.return_value = {"_id": ObjectId(), "username": "carol"}
 
@@ -87,10 +90,13 @@ def test_get_user_by_username_not_found(mock_db):
 
 # ---- authenticate_user ----
 
+
 def test_authenticate_user_success(mock_db, mocker):
     mocker.patch("app.services.check_password_hash", return_value=True)
     mock_db.users.find_one.return_value = {
-        "_id": ObjectId(), "username": "dave", "password": "hashed"
+        "_id": ObjectId(),
+        "username": "dave",
+        "password": "hashed",
     }
 
     user = authenticate_user("dave", "correctpass")
@@ -101,7 +107,9 @@ def test_authenticate_user_success(mock_db, mocker):
 def test_authenticate_user_wrong_password(mock_db, mocker):
     mocker.patch("app.services.check_password_hash", return_value=False)
     mock_db.users.find_one.return_value = {
-        "_id": ObjectId(), "username": "dave", "password": "hashed"
+        "_id": ObjectId(),
+        "username": "dave",
+        "password": "hashed",
     }
 
     user = authenticate_user("dave", "wrongpass")
@@ -117,6 +125,7 @@ def test_authenticate_user_not_found(mock_db):
 
 # ---- save_puzzle ----
 
+
 def test_save_puzzle_success(mock_db, mocker):
     oid = ObjectId()
     mock_db.puzzles.insert_one.return_value = mocker.MagicMock(inserted_id=oid)
@@ -124,6 +133,7 @@ def test_save_puzzle_success(mock_db, mocker):
     puzzle = save_puzzle("user123", "My Puzzle", [["X"] * 10] * 20)
     assert puzzle.puzzle_id[0] == str(oid)
     mock_db.puzzles.insert_one.assert_called_once()
+
 
 # def test_save_puzzle_default_queue(mock_db, mocker):
 #     oid = ObjectId()
@@ -144,6 +154,7 @@ def test_save_puzzle_success(mock_db, mocker):
 
 # ---- get_puzzle_by_id ----
 
+
 def test_get_puzzle_by_id_found(mock_db):
     oid = ObjectId()
     mock_db.puzzles.find_one.return_value = {"_id": oid, "puzzle_name": "Test"}
@@ -158,7 +169,9 @@ def test_get_puzzle_by_id_not_found(mock_db):
     puzzle = get_puzzle_by_id(str(ObjectId()))
     assert puzzle is None
 
+
 # ---- update_puzzle ----
+
 
 def test_update_puzzle_calls_update_one(mock_db):
     oid = ObjectId()
@@ -178,7 +191,9 @@ def test_update_puzzle_sets_correct_fields(mock_db):
     assert set_payload["board_json"] == matrix
     assert set_payload["queue_json"] == queue
 
+
 # ---- update_username ----
+
 
 def test_update_username_success(mock_db):
     mock_db.users.find_one.return_value = None
@@ -196,12 +211,14 @@ def test_update_username_taken(mock_db):
 
 # ---- update_password ----
 
+
 def test_update_password(mock_db):
     update_password(str(ObjectId()), "newpassword")
     mock_db.users.update_one.assert_called_once()
 
 
 # ---- delete_user ----
+
 
 def test_delete_user_cascades(mock_db):
     delete_user(str(ObjectId()))
@@ -214,6 +231,7 @@ def test_delete_user_cascades(mock_db):
 
 # ---- delete_puzzle ----
 
+
 def test_delete_puzzle(mock_db):
     delete_puzzle(str(ObjectId()))
     mock_db.puzzles.delete_one.assert_called_once()
@@ -221,12 +239,14 @@ def test_delete_puzzle(mock_db):
 
 # ---- rename_puzzle ----
 
+
 def test_rename_puzzle(mock_db):
     rename_puzzle(str(ObjectId()), "New Name")
     mock_db.puzzles.update_one.assert_called_once()
 
 
 # ---- serialize_board ----
+
 
 def test_serialize_board():
     oid = ObjectId()
@@ -242,14 +262,21 @@ def test_serialize_board():
     assert result["puzzle_name"] == "Test"
     assert result["like_count"] == 5
 
+
 # ---- get_user_boards ----
+
 
 def test_get_user_boards_returns_list(mock_db):
     oid = ObjectId()
     mock_db.puzzles.count_documents.return_value = 1
     mock_db.puzzles.find.return_value.sort.return_value.skip.return_value.limit.return_value = [
-        {"_id": oid, "puzzle_name": "Board 1", "is_public": True,
-         "created_at": "2026-01-01", "like_count": 0}
+        {
+            "_id": oid,
+            "puzzle_name": "Board 1",
+            "is_public": True,
+            "created_at": "2026-01-01",
+            "like_count": 0,
+        }
     ]
 
     boards, total = get_user_boards("user123")
@@ -260,7 +287,9 @@ def test_get_user_boards_returns_list(mock_db):
 
 def test_get_user_boards_empty(mock_db):
     mock_db.puzzles.count_documents.return_value = 0
-    mock_db.puzzles.find.return_value.sort.return_value.skip.return_value.limit.return_value = []
+    mock_db.puzzles.find.return_value.sort.return_value.skip.return_value.limit.return_value = (
+        []
+    )
 
     boards, total = get_user_boards("user123")
     assert total == 0
@@ -269,7 +298,9 @@ def test_get_user_boards_empty(mock_db):
 
 def test_get_user_boards_public_only_filter(mock_db):
     mock_db.puzzles.count_documents.return_value = 0
-    mock_db.puzzles.find.return_value.sort.return_value.skip.return_value.limit.return_value = []
+    mock_db.puzzles.find.return_value.sort.return_value.skip.return_value.limit.return_value = (
+        []
+    )
 
     get_user_boards("user123", public_only=True)
     query = mock_db.puzzles.count_documents.call_args[0][0]
@@ -278,7 +309,9 @@ def test_get_user_boards_public_only_filter(mock_db):
 
 def test_get_user_boards_search_filter(mock_db):
     mock_db.puzzles.count_documents.return_value = 0
-    mock_db.puzzles.find.return_value.sort.return_value.skip.return_value.limit.return_value = []
+    mock_db.puzzles.find.return_value.sort.return_value.skip.return_value.limit.return_value = (
+        []
+    )
 
     get_user_boards("user123", search="tetris")
     query = mock_db.puzzles.count_documents.call_args[0][0]
@@ -287,12 +320,19 @@ def test_get_user_boards_search_filter(mock_db):
 
 # ---- get_community_boards ----
 
+
 def test_get_community_boards_returns_list(mock_db):
     oid = ObjectId()
     user_oid = ObjectId()
     mock_db.puzzles.find.return_value.sort.return_value.limit.return_value = [
-        {"_id": oid, "puzzle_name": "Community Board", "is_public": True,
-         "created_at": "2026-01-01", "like_count": 3, "author_id": str(user_oid)}
+        {
+            "_id": oid,
+            "puzzle_name": "Community Board",
+            "is_public": True,
+            "created_at": "2026-01-01",
+            "like_count": 3,
+            "author_id": str(user_oid),
+        }
     ]
     mock_db.users.find_one.return_value = {"username": "alice"}
 
@@ -304,8 +344,14 @@ def test_get_community_boards_returns_list(mock_db):
 def test_get_community_boards_unknown_author(mock_db):
     oid = ObjectId()
     mock_db.puzzles.find.return_value.sort.return_value.limit.return_value = [
-        {"_id": oid, "puzzle_name": "Board", "is_public": True,
-         "created_at": "2026-01-01", "like_count": 0, "author_id": None}
+        {
+            "_id": oid,
+            "puzzle_name": "Board",
+            "is_public": True,
+            "created_at": "2026-01-01",
+            "like_count": 0,
+            "author_id": None,
+        }
     ]
 
     boards = get_community_boards()
@@ -314,11 +360,17 @@ def test_get_community_boards_unknown_author(mock_db):
 
 # ---- get_saved_boards ----
 
+
 def test_get_saved_boards_returns_list(mock_db):
     oid = ObjectId()
     mock_db.puzzles.find.return_value.sort.return_value.limit.return_value = [
-        {"_id": oid, "puzzle_name": "Saved", "is_public": False,
-         "created_at": "2026-01-01", "like_count": 0}
+        {
+            "_id": oid,
+            "puzzle_name": "Saved",
+            "is_public": False,
+            "created_at": "2026-01-01",
+            "like_count": 0,
+        }
     ]
 
     boards = get_saved_boards("user123")

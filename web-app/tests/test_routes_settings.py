@@ -4,6 +4,7 @@ Tests for settings-related routes.
 
 # pylint: disable=missing-docstring, redefined-outer-name
 
+
 def test_settings_redirects_when_not_logged_in(client):
     res = client.get("/settings", follow_redirects=False)
     assert res.status_code == 302
