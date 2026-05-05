@@ -69,10 +69,7 @@ def get_db():
         uri = os.environ.get("MONGO_URI", "mongodb://localhost:27017")
         dbname = os.environ.get("MONGO_DBNAME", "golem-db")
         client = MongoClient(
-            uri,
-            ssl=True,
-            ssl_cert_reqs=ssl.CERT_NONE,
-            tlsAllowInvalidCertificates=True
+            uri, ssl=True, ssl_cert_reqs=ssl.CERT_NONE, tlsAllowInvalidCertificates=True
         )
         get_db.db = client[dbname]
     return get_db.db
