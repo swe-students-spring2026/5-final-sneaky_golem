@@ -29,7 +29,6 @@ from app.services import (
     authenticate_user,
     serialize_solution,
     temp_puzzle,
-    get_puzzles,
     get_puzzle_by_id,
     save_puzzle,
     update_puzzle,
@@ -347,6 +346,26 @@ def new_board():
     return redirect(url_for("main.edit_board", puzzle_id=str(puzzle.puzzle_id[0])))
 
 
+def _edit_board_post(puzzle_id):
+    """Handle the POST branch of edit_board (extracted to limit return statements)."""
+    body = request.get_json(silent=True)
+    if not body:
+        return jsonify({"error": "JSON body required."}), 400
+
+    name = body.get("name", "").strip() or "UNTITLED"
+    matrix = body.get("matrix")
+    queue = body.get("queue", [])
+
+    if not matrix or not isinstance(matrix, list):
+        return jsonify({"error": "matrix is required and must be a list."}), 400
+
+    try:
+        update_puzzle(puzzle_id, name, matrix, queue)
+        return jsonify({"puzzle_id": puzzle_id}), 200
+    except PyMongoError as exc:
+        return jsonify({"error": f"Database error: {exc}"}), 500
+
+
 @main.route("/board/<puzzle_id>/edit", methods=["GET", "POST"])
 @login_required
 def edit_board(puzzle_id):
@@ -361,22 +380,7 @@ def edit_board(puzzle_id):
         return "Forbidden", 403
 
     if request.method == "POST":
-        body = request.get_json(silent=True)
-        if not body:
-            return jsonify({"error": "JSON body required."}), 400
-
-        name = body.get("name", "").strip() or "UNTITLED"
-        matrix = body.get("matrix")
-        queue = body.get("queue", [])
-
-        if not matrix or not isinstance(matrix, list):
-            return jsonify({"error": "matrix is required and must be a list."}), 400
-
-        try:
-            update_puzzle(puzzle_id, name, matrix, queue)
-            return jsonify({"puzzle_id": puzzle_id}), 200
-        except PyMongoError as exc:
-            return jsonify({"error": f"Database error: {exc}"}), 500
+        return _edit_board_post(puzzle_id)
 
     return render_template(
         "edit_board.html",
