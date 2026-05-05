@@ -135,7 +135,10 @@ def community_puzzle(puzzle_id):
 
     raw_solutions = puzzle.get("solutions_json", [])
     solutions_list = [serialize_solution(s) for s in raw_solutions]
-    active_solution = serialize_solution(raw_solutions[0], include_steps=True) if raw_solutions else None
+    active_solution = (
+        serialize_solution(raw_solutions[0], include_steps=True)
+        if raw_solutions else None
+    )
 
     return render_template(
         "saved_board.html",
@@ -291,4 +294,3 @@ def community():
         community_boards=get_puzzles(),
         saved_boards=[],
     )
-
