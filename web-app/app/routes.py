@@ -2,6 +2,7 @@
 Defines all HTTP API endpoints for the web application:
 The main interface between the frontend and backend services.
 """
+
 import base64
 import os
 
@@ -19,8 +20,7 @@ import requests
 
 from flask_login import login_user, logout_user, login_required, current_user
 
-# from werkzeug.security import check_password_hash
-# import requests
+from pymongo.errors import PyMongoError
 
 from app.services import (
     get_user_by_username,
@@ -32,9 +32,12 @@ from app.services import (
     save_puzzle,
 )
 
-main = Blueprint('main', __name__)
+main = Blueprint("main", __name__)
 
-ML_CLIENT_URL = os.getenv("ML_CLIENT_URL", "http://localhost:5001") # change this as needed.
+ML_CLIENT_URL = os.getenv(
+    "ML_CLIENT_URL", "http://localhost:5001"
+)  # change this as needed.
+
 
 @main.route("/login", methods=["GET", "POST"])
 def login():
@@ -48,12 +51,12 @@ def login():
         user = get_user_by_username(username)
         if user and authenticate_user(username, password):
             login_user(user)
-            print("User logged in: %s", username) # comment out this later
+            print("User logged in: %s", username)  # comment out this later
             next_page = request.args.get("next")
             return redirect(next_page or url_for("main.dashboard"))
 
         flash("Invalid username or password.", "error")
-        print("Failed login attempt for username: %s", username) # same
+        print("Failed login attempt for username: %s", username)  # same
 
     return render_template("login.html")
 
@@ -91,8 +94,9 @@ def logout():
     Ends the user session.
     """
     logout_user()
-    flash('You have been logged out.')
-    return redirect(url_for('main.login'))
+    flash("You have been logged out.")
+    return redirect(url_for("main.login"))
+
 
 @main.route("/", methods=["GET"])
 @login_required
@@ -126,6 +130,7 @@ def tetris_board():
     temp_puzzle()
     return render_template("zztetris/index.html", user=current_user)
 
+
 # ---- Endpoint for ML Client ----
 @main.route("/api/analyze-board", methods=["POST"])
 @login_required
@@ -156,8 +161,6 @@ def analyze_board():
         return jsonify({"error": "ML client is unreachable."}), 502
     except requests.exceptions.Timeout:
         return jsonify({"error": "ML client timed out."}), 504
-    except requests.exceptions.HTTPError as exc:
-        return jsonify({"error": f"ML client error: {exc.response.status_code}"}), 502
 
     data = response.json()
 
@@ -165,6 +168,7 @@ def analyze_board():
         return jsonify({"error": "Unexpected response from ML client."}), 502
 
     return jsonify({"board": data["board"]}), 200
+
 
 @main.route("/api/save-board", methods=["POST"])
 @login_required
@@ -184,8 +188,8 @@ def save_board():
     if not body:
         return jsonify({"error": "JSON body required."}), 400
     puzzle_name = body.get("puzzle_name", "").strip()
-    board       = body.get("board")
-    is_public   = body.get("is_public", True)
+    board = body.get("board")
+    is_public = body.get("is_public", True)
 
     if not puzzle_name:
         return jsonify({"error": "puzzle_name is required."}), 400
@@ -199,5 +203,7 @@ def save_board():
             is_public=is_public,
         )
         return jsonify({"puzzle_id": str(puzzle.puzzle_id[0])}), 201
-    except Exception as exc:
-        return jsonify({"error": str(exc)}), 500
+    except PyMongoError as exc:
+        return jsonify({"error": f"Database error: {exc}"}), 500
+    except ValueError as exc:
+        return jsonify({"error": f"Invalid data: {exc}"}), 400
