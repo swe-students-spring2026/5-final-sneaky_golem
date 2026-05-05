@@ -129,6 +129,7 @@ function setBoard(setter, setter2){
 	console.log(data2)
 	parseBoard(JSON.parse(data2));
 	boardStart = structuredClone(board);
+	log.push(structuredClone(board));
 	const dataArr = data.split('');
 	queue = [];
 	for(let i = 0; i < dataArr.length; i++){
@@ -150,7 +151,7 @@ function setBoard(setter, setter2){
 	updateGhost();
 	setShape();
 	updateHistory();
-	log.push(structuredClone(boardStart))
+	newPiece();
 	
 }
 

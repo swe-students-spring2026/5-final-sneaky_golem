@@ -89,7 +89,6 @@ function parseBoard(boardState){
 		board.push(row);
 		print("ranner");
 	}
-	newPiece();
 }
 //example board
 /*
