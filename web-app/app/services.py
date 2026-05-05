@@ -291,6 +291,7 @@ def get_community_boards(limit=6):
     boards = []
     for doc in docs:
         board = serialize_board(doc)
+        board["_id"] = str(doc["_id"])
         try:
             author_id = doc.get("author_id")
             user = (
