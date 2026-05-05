@@ -246,3 +246,20 @@ def get_saved_boards(user_id, limit=4):
         db.puzzles.find({"author_id": user_id}).sort([("created_at", -1)]).limit(limit)
     )
     return [serialize_board(doc) for doc in docs]
+
+def serialize_solution(doc, include_steps=False):
+    """
+    Convert a solution document to a dict with serializable fields.
+    Set include_steps=True for the active solution, False for the list view.
+    """
+    result = {
+        "solution_id": str(doc["_id"]),
+        "solution_name": doc.get("solution_name"),
+        "author_username": doc.get("author_username"),
+        "like_count": doc.get("like_count", 0),
+        "created_at": str(doc.get("created_at", "")),
+        "final_board": doc.get("final_board"),
+    }
+    if include_steps:
+        result["steps"] = doc.get("steps", [])
+    return result
