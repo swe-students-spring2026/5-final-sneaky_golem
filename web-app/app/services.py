@@ -5,7 +5,6 @@ And ...
 """
 
 import os
-import ssl
 
 # import uuid
 from datetime import datetime, timezone
@@ -68,9 +67,7 @@ def get_db():
     if not hasattr(get_db, "db"):
         uri = os.environ.get("MONGO_URI", "mongodb://localhost:27017")
         dbname = os.environ.get("MONGO_DBNAME", "golem-db")
-        client = MongoClient(
-            uri, ssl=True, ssl_cert_reqs=ssl.CERT_NONE, tlsAllowInvalidCertificates=True
-        )
+        client = MongoClient(uri, tlsAllowInvalidCertificates=True)
         get_db.db = client[dbname]
     return get_db.db
 
