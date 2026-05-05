@@ -128,6 +128,21 @@ def dashboard():
     )
 
 
+@main.route("/board/new", methods=["GET"])
+@login_required
+def new_board():
+    """
+    Create a new empty puzzle for the current user and redirect to its edit page.
+    """
+    puzzle = save_puzzle(
+        author_id=current_user.id,
+        puzzle_name="UNTITLED",
+        board=_EMPTY_BOARD,
+        queue=[],
+    )
+    return redirect(url_for("main.edit_board", puzzle_id=str(puzzle.puzzle_id[0])))
+
+
 @main.route("/board/<puzzle_id>")
 @login_required
 def view_board(puzzle_id):
@@ -303,21 +318,6 @@ def community():
         community_boards=get_puzzles(),
         saved_boards=[],
     )
-
-
-@main.route("/board/new", methods=["GET"])
-@login_required
-def new_board():
-    """
-    Create a new empty puzzle for the current user and redirect to its edit page.
-    """
-    puzzle = save_puzzle(
-        author_id=current_user.id,
-        puzzle_name="UNTITLED",
-        board=_EMPTY_BOARD,
-        queue=[],
-    )
-    return redirect(url_for("main.edit_board", puzzle_id=str(puzzle.puzzle_id[0])))
 
 
 @main.route("/board/<puzzle_id>/edit", methods=["GET", "POST"])
@@ -552,3 +552,4 @@ def delete_account():
     except PyMongoError as exc:
         flash(f"Database error: {exc}", "error")
         return redirect(url_for("main.settings"))
+    
