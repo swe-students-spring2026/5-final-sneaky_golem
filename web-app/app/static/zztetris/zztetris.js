@@ -36,6 +36,7 @@ function restart() {
     oldb2b = b2b;
 	b2b = -1;
 	log = [];
+	logBoard()
 	newPiece()
 }
 
@@ -149,6 +150,7 @@ function setBoard(setter, setter2){
 	updateGhost();
 	setShape();
 	updateHistory();
+	logBoard();
 }
 
 function logBoard(){
