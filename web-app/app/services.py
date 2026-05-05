@@ -431,4 +431,6 @@ def unlike_puzzle(user_id, puzzle_id):
     db = get_db()
     result = db.likes.delete_one({"user_id": user_id, "puzzle_id": puzzle_id})
     if result.deleted_count:
-        db.puzzles.update_one({"_id": ObjectId(puzzle_id)}, {"$inc": {"like_count": -1}})
+        db.puzzles.update_one(
+            {"_id": ObjectId(puzzle_id)}, {"$inc": {"like_count": -1}}
+        )

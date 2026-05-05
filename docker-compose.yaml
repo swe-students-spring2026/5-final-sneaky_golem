@@ -8,9 +8,10 @@ services:
       - "27017:27017"
     volumes:
       - mongo_data:/data/db
-
+  
   machine-learning-client:
-    image: ah6820/golem-ml-client:latest
+    build:
+      context: ./machine-learning-client
     container_name: golem-ml-client
     ports:
       - "5001:5001"
@@ -18,13 +19,15 @@ services:
       - mongodb
 
   web-app:
-    image: ah6820/golem-web-app:latest
+    build:
+      context: ./web-app
+    volumes:
+      - ./web-app:/app
     container_name: golem-web-app
     ports:
       - "5000:5000"
     depends_on:
       - mongodb
-      - machine-learning-client
     environment:
     - MONGO_URI=mongodb://mongodb:27017
     - MONGO_DBNAME=golem-db
