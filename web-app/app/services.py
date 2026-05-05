@@ -171,3 +171,27 @@ def save_puzzle(author_id, puzzle_name, board, is_public=True):
     result = db.puzzles.insert_one(doc)
     doc["_id"] = result.inserted_id
     return Puzzle(doc)
+
+def get_user_boards(user_id, sort="newest", search="", public_only=False, page=1, per_page=10):
+    """
+    Get a paginated list of boards for a specific user.
+    Supports sorting by date or likes, filtering by public status, and searching by name.
+    """
+    db = get_db()
+
+    query = {"author_id": user_id}
+    if public_only:
+        query["is_public"] = True
+    if search:
+        query["puzzle_name"] = {"$regex": search, "$options": "i"}
+
+    sort_field = {
+        "newest": [("created_at", -1)],
+        "oldest": [("created_at", 1)],
+        "likes":  [("like_count", -1)],
+    }.get(sort, [("created_at", -1)])
+
+    total = db.puzzles.count_documents(query)
+    skip = (page - 1) * per_page
+    docs = list(db.puzzles.find(query).sort(sort_field).skip(skip).limit(per_page))
+    return docs, total
