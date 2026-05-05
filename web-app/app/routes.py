@@ -113,14 +113,19 @@ def community_puzzle(puzzle_id):
     puzzle = get_puzzle_by_id(puzzle_id)
     if puzzle is None:
         return "Board not found", 404
+    
+    solutions = puzzle.get("solutions_json", [])
+    solutions_list = []
+    for s in solutions:
+        solutions_list.append({k: v for k, v in s.items() if k != "steps"})
 
     return render_template(
         "saved_board.html",
         user=current_user,
         puzzle=puzzle,
-        board_json=json.dumps(puzzle.get("matrix")),
-        solutions_json=json.dumps(solutions),
-        active_solution_json=json.dumps(active_solution),
+        board_json=json.dumps(puzzle.get("board_json")),
+        solutions_json=json.dumps(solutions_list, default=str),
+        active_solution_json=json.dumps(puzzle.get("active_solution_json"), default=str),
     )
 
 
