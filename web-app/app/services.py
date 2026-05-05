@@ -247,6 +247,7 @@ def get_saved_boards(user_id, limit=4):
     )
     return [serialize_board(doc) for doc in docs]
 
+
 def serialize_solution(doc, include_steps=False):
     """
     Convert a solution document to a dict with serializable fields.

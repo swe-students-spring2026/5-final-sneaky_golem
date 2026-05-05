@@ -137,7 +137,8 @@ def community_puzzle(puzzle_id):
     solutions_list = [serialize_solution(s) for s in raw_solutions]
     active_solution = (
         serialize_solution(raw_solutions[0], include_steps=True)
-        if raw_solutions else None
+        if raw_solutions
+        else None
     )
 
     return render_template(
@@ -148,7 +149,6 @@ def community_puzzle(puzzle_id):
         solutions_json=json.dumps(solutions_list, default=str),
         active_solution_json=json.dumps(active_solution, default=str),
     )
-
 
 
 @main.route("/tetris", methods=["GET"])
