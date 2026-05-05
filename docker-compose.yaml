@@ -16,7 +16,7 @@ services:
       - "5001:5001"
     depends_on:
       - mongodb
-  
+
   web-app:
     image: ah6820/golem-web-app:latest
     container_name: golem-web-app

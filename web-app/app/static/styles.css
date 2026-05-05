@@ -54,8 +54,6 @@ a {
     font-size: 22px;
     letter-spacing: 1px;
     margin-bottom: 32px;
-    border-left: 3px solid #fff;
-    padding-left: 12px;
 }
 
 .btn {
@@ -295,6 +293,7 @@ a {
 .board-cell[data-piece="Z"] { background: #f00000; border-color: #c00000; }
 .board-cell[data-piece="J"] { background: #0000f0; border-color: #0000c0; }
 .board-cell[data-piece="L"] { background: #f0a000; border-color: #c07800; }
+.board-cell[data-piece="G"] { background: #999999; border-color: #4d4d4d; }
 
 .btn:disabled,
 .ctrl-btn:disabled {
@@ -447,6 +446,53 @@ a {
     padding: 0 4px;
     letter-spacing: 2px;
 }
+
+.import-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 24px;
+}
+
+.import-file-input {
+    display: none;
+}
+
+.import-label {
+    display: inline-block;
+    margin-top: 8px;
+}
+
+.import-hidden {
+    display: none;
+}
+
+.import-processing-label {
+    font-size: 13px;
+    letter-spacing: 3px;
+}
+
+.import-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.board-cell[data-hover="ok"] { opacity: 0.5; }
+.board-cell[data-hover="bad"] { background: rgba(200,0,0,0.6) !important; border-color: #f00 !important; }
+ 
+#tetris-board.tool-draw,
+#tetris-board.tool-erase { cursor: crosshair; }
+#tetris-board.tool-delete { cursor: default; }
+#tetris-board.tool-delete .board-cell[data-piece]:not([data-drawn]) { cursor: pointer; }
+ 
+.queue-item { display:flex; align-items:center; justify-content:center; padding:8px 0; border-bottom:1px solid #222; cursor:pointer; }
+.queue-item:hover { background:#111; }
+.queue-empty { font-size:10px; letter-spacing:2px; color:#555; padding:12px 0; text-align:center; }
+.palette-piece:active { cursor: grabbing; }
+#garbage-picker { display: inline-flex; cursor: grab; }
+#garbage-picker:active { cursor: grabbing; }
+.garbage-hole { border-color: #444 !important; }
 
 /* styling for settings. actually looks better without the following. */
 /* .settings-form {

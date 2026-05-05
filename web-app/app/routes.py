@@ -31,6 +31,10 @@ from app.services import (
     get_puzzles,
     get_puzzle_by_id,
     save_puzzle,
+    update_puzzle,
+    rename_puzzle,
+    delete_puzzle,
+    serialize_board,
     get_user_boards,
     get_community_boards,
     get_saved_boards,
@@ -45,6 +49,8 @@ main = Blueprint("main", __name__)
 ML_CLIENT_URL = os.getenv(
     "ML_CLIENT_URL", "http://localhost:5001"
 )  # change this as needed.
+
+_EMPTY_BOARD = [[None] * 10 for _ in range(20)]
 
 
 @main.route("/login", methods=["GET", "POST"])
@@ -107,6 +113,7 @@ def logout():
 
 
 @main.route("/", methods=["GET"])
+@main.route("/dashboard", methods=["GET"])
 @login_required
 def dashboard():
     """
@@ -120,25 +127,24 @@ def dashboard():
     )
 
 
-@main.route("/community/board/<puzzle_id>")
+@main.route("/board/<puzzle_id>")
 @login_required
-def community_puzzle(puzzle_id):
+def view_board(puzzle_id):
     """
-    Display a certain community puzzle from its id.
+    Display a puzzle's board, its solutions, and the active solution.
     """
     puzzle = get_puzzle_by_id(puzzle_id)
     if puzzle is None:
         return "Board not found", 404
 
-    solutions = puzzle.get("solutions_json", [])
     solutions_list = []
-    for s in solutions:
+    for s in puzzle.get("solutions_json", []):
         solutions_list.append({k: v for k, v in s.items() if k != "steps"})
 
     return render_template(
         "saved_board.html",
         user=current_user,
-        puzzle=puzzle,
+        puzzle=serialize_board(puzzle),
         board_json=json.dumps(puzzle.get("board_json")),
         solutions_json=json.dumps(solutions_list, default=str),
         active_solution_json=json.dumps(
@@ -290,6 +296,169 @@ def community():
         community_boards=get_puzzles(),
         saved_boards=[],
     )
+
+
+@main.route("/board/new", methods=["GET"])
+@login_required
+def new_board():
+    """
+    Create a new empty puzzle for the current user and redirect to its edit page.
+    """
+    puzzle = save_puzzle(
+        author_id=current_user.id,
+        puzzle_name="UNTITLED",
+        board=_EMPTY_BOARD,
+        queue=[],
+    )
+    return redirect(url_for("main.edit_board", puzzle_id=str(puzzle.puzzle_id[0])))
+
+
+@main.route("/board/<puzzle_id>/edit", methods=["GET", "POST"])
+@login_required
+def edit_board(puzzle_id):
+    """
+    GET:  Render the board editor pre-loaded with the puzzle's current state.
+    POST: Persist the updated board matrix, queue, and name to the database.
+    """
+    if request.method == "POST":
+        body = request.get_json(silent=True)
+        if not body:
+            return jsonify({"error": "JSON body required."}), 400
+
+        name = body.get("name", "").strip() or "UNTITLED"
+        matrix = body.get("matrix")
+        queue = body.get("queue", [])
+
+        if not matrix or not isinstance(matrix, list):
+            return jsonify({"error": "matrix is required and must be a list."}), 400
+
+        try:
+            update_puzzle(puzzle_id, name, matrix, queue)
+            return jsonify({"puzzle_id": puzzle_id}), 200
+        except PyMongoError as exc:
+            return jsonify({"error": f"Database error: {exc}"}), 500
+
+    puzzle = get_puzzle_by_id(puzzle_id)
+    if puzzle is None:
+        return "Board not found", 404
+
+    return render_template(
+        "edit_board.html",
+        puzzle_id=puzzle_id,
+        puzzle_name=puzzle.get("puzzle_name", "UNTITLED"),
+        board_json=json.dumps(puzzle.get("board_json", [])),
+        queue_json=json.dumps(puzzle.get("queue_json", [])),
+    )
+
+
+@main.route("/board/<puzzle_id>/rename", methods=["POST"])
+@login_required
+def rename_board(puzzle_id):
+    """
+    POST: Rename a puzzle.
+    Expects JSON: { "name": str }
+    """
+    body = request.get_json(silent=True)
+    if not body:
+        return jsonify({"error": "JSON body required."}), 400
+    name = body.get("name", "").strip()
+    if not name:
+        return jsonify({"error": "name is required."}), 400
+    try:
+        rename_puzzle(puzzle_id, name)
+        return jsonify({"puzzle_id": puzzle_id}), 200
+    except PyMongoError as exc:
+        return jsonify({"error": f"Database error: {exc}"}), 500
+
+
+@main.route("/board/<puzzle_id>/delete", methods=["POST"])
+@login_required
+def delete_board(puzzle_id):
+    """
+    POST: Delete a puzzle and redirect to dashboard.
+    """
+    try:
+        delete_puzzle(puzzle_id)
+        return jsonify({"redirect": url_for("main.dashboard")}), 200
+    except PyMongoError as exc:
+        return jsonify({"error": f"Database error: {exc}"}), 500
+
+
+@main.route("/import", methods=["GET"])
+@login_required
+def import_board():
+    """
+    GET: Render the import page.
+    """
+    return render_template("import.html")
+
+
+@main.route("/import", methods=["POST"])
+@login_required
+def import_board_upload():
+    """
+    POST: Accept an image upload, forward to the ML client, return the parsed matrix.
+
+    Expects: multipart/form-data with field "image".
+    Returns: { "matrix": [[str|null, ...], ...] }
+    """
+    if "image" not in request.files:
+        return jsonify({"error": "No image file provided."}), 400
+    image_file = request.files["image"]
+    if image_file.filename == "":
+        return jsonify({"error": "Empty filename."}), 400
+
+    image_b64 = base64.b64encode(image_file.read()).decode("utf-8")
+    try:
+        response = requests.post(
+            f"{ML_CLIENT_URL}/extract-board",
+            json={"image": image_b64},
+            timeout=10,
+        )
+        response.raise_for_status()
+    except requests.exceptions.ConnectionError:
+        return jsonify({"error": "ML client is unreachable."}), 502
+    except requests.exceptions.Timeout:
+        return jsonify({"error": "ML client timed out."}), 504
+
+    data = response.json()
+    if "board" not in data:
+        return jsonify({"error": "Unexpected response from ML client."}), 502
+
+    return jsonify({"matrix": data["board"]}), 200
+
+
+@main.route("/import/confirm", methods=["POST"])
+@login_required
+def import_board_confirm():
+    """
+    POST: Save the imported matrix as a new puzzle and return the edit URL.
+
+    Expects JSON: { "matrix": [[str|null, ...], ...] }
+    Returns: { "redirect": "/board/<puzzle_id>/edit" }
+    """
+    body = request.get_json(silent=True)
+    if not body:
+        return jsonify({"error": "JSON body required."}), 400
+
+    matrix = body.get("matrix")
+    if not matrix or not isinstance(matrix, list):
+        return jsonify({"error": "matrix is required and must be a list."}), 400
+
+    try:
+        puzzle = save_puzzle(
+            author_id=current_user.id,
+            puzzle_name="UNTITLED",
+            board=matrix,
+            queue=[],
+        )
+        puzzle_id = str(puzzle.puzzle_id[0])
+        return (
+            jsonify({"redirect": url_for("main.edit_board", puzzle_id=puzzle_id)}),
+            201,
+        )
+    except PyMongoError as exc:
+        return jsonify({"error": f"Database error: {exc}"}), 500
 
 
 # ---- endpoints for user settings ----
