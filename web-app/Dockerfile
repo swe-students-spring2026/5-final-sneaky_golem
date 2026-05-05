@@ -8,6 +8,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y \
     libssl-dev \
     ca-certificates \
+    openssl \
     && rm -rf /var/lib/apt/lists/*
 
 # Install pipenv
