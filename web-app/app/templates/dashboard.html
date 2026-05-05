@@ -39,7 +39,7 @@
     </div>
     <div class="grid-3">
         {% for puzzle in community_boards %}
-        <a href="/community/board/{{ puzzle.puzzle_id }}" class="box" style="display:block;">
+        <a href="/community/board/{{ puzzle._id }}" class="box" style="display:block;">
             <div class="box-label">by {{ puzzle.author_username }} &nbsp;·&nbsp; {{ puzzle.created_at }}</div>
             <div>{{ puzzle.puzzle_name }}</div>
         </a>
