@@ -44,7 +44,7 @@ from app.services import (
     update_password,
     delete_user,
     update_puzzle_solution,
-    get_solution_by_id
+    get_solution_by_id,
     set_puzzle_public,
     has_liked,
     like_puzzle,
