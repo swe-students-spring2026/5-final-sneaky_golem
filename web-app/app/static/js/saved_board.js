@@ -100,9 +100,9 @@
     }
 
     function goFirst() { goToStep(0); }
-    function goPrev() { goToStep(currentStep - 1); }
-    function goNext() { goToStep(currentStep + 1); }
-    function goLast() {
+    function goPrev()  { goToStep(currentStep - 1); }
+    function goNext()  { goToStep(currentStep + 1); }
+    function goLast()  {
         if (activeSolution && activeSolution.steps) {
             goToStep(activeSolution.steps.length - 1);
         }
@@ -185,22 +185,16 @@
 
     function sortSolutions() {
         if (sortMode === 'likes') {
-            solutions.sort(function (a, b) {
-                return b.like_count - a.like_count;
-            });
+            solutions.sort(function (a, b) { return b.like_count - a.like_count; });
         } else {
-            solutions.sort(function (a, b) {
-                return new Date(b.created_at) - new Date(a.created_at);
-            });
+            solutions.sort(function (a, b) { return new Date(b.created_at) - new Date(a.created_at); });
         }
     }
 
     function setSort(mode) {
         sortMode = mode;
-
         document.getElementById('sort-date').classList.toggle('sort-active', mode === 'date');
         document.getElementById('sort-likes').classList.toggle('sort-active', mode === 'likes');
-
         sortSolutions();
         currentPage = 1;
         renderSolutionList();
@@ -250,6 +244,34 @@
             });
     }
 
+    function deleteBoard() {
+        if (!confirm('Delete this board? This cannot be undone.')) return;
+
+        const btn = document.getElementById('delete-btn');
+        btn.disabled = true;
+        btn.textContent = 'DELETING\u2026';
+
+        fetch(`/board/${puzzleId}/delete`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+        })
+            .then(function (res) {
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                return res.json();
+            })
+            .then(function (data) {
+                window.location.href = data.redirect;
+            })
+            .catch(function (err) {
+                console.error('[saved_board] Delete failed:', err);
+                btn.textContent = 'ERROR';
+                setTimeout(function () {
+                    btn.textContent = 'DELETE BOARD';
+                    btn.disabled = false;
+                }, 2000);
+            });
+    }
+
     function bindEvents() {
         document.getElementById('btn-first').addEventListener('click', goFirst);
         document.getElementById('btn-prev').addEventListener('click', goPrev);
@@ -266,6 +288,8 @@
         document.getElementById('board-name-input').addEventListener('keydown', function (e) {
             if (e.key === 'Enter') renameBoard();
         });
+
+        document.getElementById('delete-btn').addEventListener('click', deleteBoard);
     }
 
     function init() {

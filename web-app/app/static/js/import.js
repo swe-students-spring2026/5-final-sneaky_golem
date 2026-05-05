@@ -48,7 +48,7 @@ fileInput.addEventListener('change', function () {
     const body = new FormData();
     body.append('image', file);
 
-    fetch('/board/import', { method: 'POST', body })
+    fetch('/import', { method: 'POST', body })
         .then(function (res) {
             if (!res.ok) throw new Error('HTTP ' + res.status);
             return res.json();
@@ -70,14 +70,17 @@ confirmBtn.addEventListener('click', function () {
     confirmBtn.disabled = true;
     confirmBtn.textContent = 'SAVING\u2026';
 
-    fetch('/board/import/confirm', {
+    fetch('/import/confirm', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ matrix: currentMatrix }),
     })
         .then(function (res) {
             if (!res.ok) throw new Error('HTTP ' + res.status);
-            window.location.href = '/dashboard';
+            return res.json();
+        })
+        .then(function (data) {
+            window.location.href = data.redirect;
         })
         .catch(function (err) {
             console.error('[import] Confirm failed:', err);

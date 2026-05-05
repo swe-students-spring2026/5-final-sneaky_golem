@@ -9,6 +9,15 @@ services:
     volumes:
       - mongo_data:/data/db
   
+  machine-learning-client:
+    build:
+      context: ./machine-learning-client
+    container_name: golem-ml-client
+    ports:
+      - "5001:5001"
+    depends_on:
+      - mongodb
+
   web-app:
     build:
       context: ./web-app
@@ -23,6 +32,7 @@ services:
     - MONGO_URI=mongodb://mongodb:27017
     - MONGO_DBNAME=golem-db
     - SECRET_KEY=watch_tv
+    - ML_CLIENT_URL=http://machine-learning-client:5001
 
 volumes:
   mongo_data:
