@@ -36,7 +36,7 @@ function restart() {
     oldb2b = b2b;
 	b2b = -1;
 	log = [];
-	log.push(boardStart);
+	log.push(structuredClone(boardStart));
 	newPiece()
 }
 
@@ -127,8 +127,8 @@ function setBoard(setter, setter2){
 	//const data = prompt("Please enter a queue:");
 	const data2 = setter.replace(/None/g, "'X'").replace(/'/g, '"');
 	console.log(data2)
-	parseBoard(JSON.parse(data2));
-	boardStart = structuredClone(board);
+	boardStart = structuredClone(parseBoard(JSON.parse(data2)));
+	log.push(structuredClone(board));
 	const dataArr = data.split('');
 	queue = [];
 	for(let i = 0; i < dataArr.length; i++){
@@ -150,7 +150,6 @@ function setBoard(setter, setter2){
 	updateGhost();
 	setShape();
 	updateHistory();
-	log.push(boardStart);
 	
 }
 

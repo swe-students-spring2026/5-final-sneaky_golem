@@ -1,9 +1,9 @@
 const print = console.log;
 const LS = localStorage; // client side data storage
 
-function ctrlsPopup() { // opens a popup window with keybinds
+function ctrlsPopup(url) { // opens a popup window with keybinds
 
-	const p = window.open('controls', 'popup', 'width=1200,height=800');
+	const p = window.open(url, 'popup', 'width=1200,height=800');
 	var reloading = false;
 
 	setInterval(() => {

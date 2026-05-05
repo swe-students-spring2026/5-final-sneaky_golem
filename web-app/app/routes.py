@@ -174,6 +174,15 @@ def view_board(puzzle_id):
     )
 
 
+@main.route("/controls", methods=["GET"])
+@login_required
+def controls():
+    """
+    Tetris board
+    """
+    return render_template("zztetris/controls.html")
+
+
 @main.route("/tetris", methods=["GET"])
 def tetris_board():
     """

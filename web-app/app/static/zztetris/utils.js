@@ -70,7 +70,7 @@ function garbage(column, amount = 1) {
 }
 
 function parseBoard(boardState){
-	print("run");
+	newPiece();
 	for(let y = 0; y < boardState.length; y++){
 		let row = new Array(10).fill({ t: 0, c: '' });
 		for(let x = 0; x < boardState[y].length; x++){
@@ -89,7 +89,8 @@ function parseBoard(boardState){
 		board.push(row);
 		print("ranner");
 	}
-	newPiece();
+	let boardClone = structuredClone(board);
+	return boardClone;
 }
 //example board
 /*
