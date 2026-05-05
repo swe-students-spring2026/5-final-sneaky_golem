@@ -127,8 +127,7 @@ function setBoard(setter, setter2){
 	//const data = prompt("Please enter a queue:");
 	const data2 = setter.replace(/None/g, "'X'").replace(/'/g, '"');
 	console.log(data2)
-	parseBoard(JSON.parse(data2));
-	boardStart = structuredClone(board);
+	boardStart = structuredClone(parseBoard(JSON.parse(data2)));
 	log.push(structuredClone(board));
 	const dataArr = data.split('');
 	queue = [];
@@ -151,7 +150,6 @@ function setBoard(setter, setter2){
 	updateGhost();
 	setShape();
 	updateHistory();
-	newPiece();
 	
 }
 
