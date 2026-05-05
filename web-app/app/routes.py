@@ -395,8 +395,7 @@ def edit_board(puzzle_id):
 @login_required
 def rename_board(puzzle_id):
     """
-    POST: Rename a puzzle.
-    Expects JSON: { "name": str }
+    POST: Rename a puzzle. Expects JSON: { "name": str }
     """
     body = request.get_json(silent=True)
     if not body:
