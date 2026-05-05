@@ -1,15 +1,15 @@
 # Use official Python image
-FROM python:3.10-slim
+FROM python:3.10
 
 # Set working directory inside container
 WORKDIR /app
 
 # Add OpenSSL
-RUN apt-get update && apt-get install -y \
-    libssl-dev \
-    ca-certificates \
-    openssl \
-    && rm -rf /var/lib/apt/lists/*
+# RUN apt-get update && apt-get install -y \
+#     libssl-dev \
+#     ca-certificates \
+#     openssl \
+#     && rm -rf /var/lib/apt/lists/*
 
 # Install pipenv
 RUN pip install pipenv
