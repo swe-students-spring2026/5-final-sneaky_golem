@@ -183,12 +183,14 @@ def update_puzzle(puzzle_id, name, matrix, queue):
     db = get_db()
     db.puzzles.update_one(
         {"_id": ObjectId(puzzle_id)},
-        {"$set": {
-            "puzzle_name": name,
-            "board_json": matrix,
-            "queue_json": queue,
-            "updated_at": datetime.now(timezone.utc),
-        }},
+        {
+            "$set": {
+                "puzzle_name": name,
+                "board_json": matrix,
+                "queue_json": queue,
+                "updated_at": datetime.now(timezone.utc),
+            }
+        },
     )
 
 
@@ -199,10 +201,12 @@ def rename_puzzle(puzzle_id, name):
     db = get_db()
     db.puzzles.update_one(
         {"_id": ObjectId(puzzle_id)},
-        {"$set": {
-            "puzzle_name": name,
-            "updated_at": datetime.now(timezone.utc),
-        }},
+        {
+            "$set": {
+                "puzzle_name": name,
+                "updated_at": datetime.now(timezone.utc),
+            }
+        },
     )
 
 

@@ -453,9 +453,14 @@ def import_board_confirm():
             queue=[],
         )
         puzzle_id = str(puzzle.puzzle_id[0])
-        return jsonify({"redirect": url_for("main.edit_board", puzzle_id=puzzle_id)}), 201
+        return (
+            jsonify({"redirect": url_for("main.edit_board", puzzle_id=puzzle_id)}),
+            201,
+        )
     except PyMongoError as exc:
         return jsonify({"error": f"Database error: {exc}"}), 500
+
+
 # ---- endpoints for user settings ----
 @main.route("/settings", methods=["GET"])
 @login_required
