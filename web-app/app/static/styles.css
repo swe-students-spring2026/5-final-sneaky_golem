@@ -107,6 +107,17 @@ a {
     gap: 24px;
 }
 
+/* Applied when the sidebar is not rendered (non-owner view).
+   Keeps the board and solutions in their original columns
+   without touching the shared base classes. */
+.board-layout-no-sidebar .board-center {
+    grid-column: 2;
+}
+
+.board-layout-no-sidebar .board-solutions {
+    grid-column: 3;
+}
+
 .sidebar-section {
     display: flex;
     flex-direction: column;
@@ -300,6 +311,14 @@ a {
     opacity: 0.3;
     cursor: default;
     pointer-events: none;
+}
+
+.btn-liked,
+.btn-liked:hover {
+    background: #444;
+    color: #888;
+    border-color: #555;
+    cursor: default;
 }
 
 .solution-item.solution-active .solution-meta {
