@@ -1,6 +1,7 @@
 """
 Initializes the Flask application and registers all blueprints for routing.
 """
+
 import os
 from flask import Flask
 from flask_login import LoginManager
@@ -8,6 +9,7 @@ from .routes import main
 from .services import get_user_by_id
 
 login_manager = LoginManager()
+
 
 def create_app(config=None):
     """

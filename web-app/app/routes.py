@@ -11,9 +11,11 @@ from flask import (
     url_for,
     flash,
 )
+
 # import jsonify
 
 from flask_login import login_user, logout_user, login_required, current_user
+
 # from werkzeug.security import check_password_hash
 # import requests
 
@@ -23,10 +25,11 @@ from app.services import (
     authenticate_user,
     temp_puzzle,
     get_puzzles,
-    get_puzzle_by_id
+    get_puzzle_by_id,
 )
 
-main = Blueprint('main', __name__)
+main = Blueprint("main", __name__)
+
 
 @main.route("/login", methods=["GET", "POST"])
 def login():
@@ -48,6 +51,7 @@ def login():
         print("Failed login attempt for username: %s", username)
 
     return render_template("login.html")
+
 
 @main.route("/register", methods=["GET", "POST"])
 def register():
@@ -74,30 +78,41 @@ def register():
 
     return render_template("register.html")
 
-@main.route('/logout')
+
+@main.route("/logout")
 @login_required
 def logout():
     """
     Ends the user session.
     """
     logout_user()
-    flash('You have been logged out.')
-    return redirect(url_for('login'))
+    flash("You have been logged out.")
+    return redirect(url_for("login"))
+
 
 @main.route("/", methods=["GET"])
 @login_required
 def dashboard():
     """
     Displays the user's dashboard.
-    
+
     Check if this is aligned with Tim's templates.
     """
-    return render_template("dashboard.html", user=current_user, community_boards=get_puzzles())
+    return render_template(
+        "dashboard.html", user=current_user, community_boards=get_puzzles()
+    )
 
-@main.route('/community/board/<puzzle_id>')
+
+@main.route("/community/board/<puzzle_id>")
 @login_required
 def community_puzzle(puzzle_id):
-    return render_template("saved_board.html", user=current_user, puzzle=get_puzzle_by_id(puzzle_id))
+    """
+    Display a certain community puzzle from its id.
+    """
+    return render_template(
+        "saved_board.html", user=current_user, puzzle=get_puzzle_by_id(puzzle_id)
+    )
+
 
 @main.route("/tetris", methods=["GET"])
 def tetris_board():

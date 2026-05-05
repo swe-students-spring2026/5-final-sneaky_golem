@@ -4,12 +4,10 @@ FROM python:3.10-slim
 # Set working directory inside container
 WORKDIR /app
 
-# Copy dependency files first
-COPY Pipfile Pipfile.lock ./
-
 # Install pipenv
 RUN pip install pipenv
 
+# Copy dependency files
 COPY Pipfile Pipfile.lock ./
 
 # Install dependencies into system (not virtualenv)
