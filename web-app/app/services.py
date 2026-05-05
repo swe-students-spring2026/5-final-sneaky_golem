@@ -11,6 +11,7 @@ from datetime import datetime, timezone
 
 # import requests
 from bson.objectid import ObjectId
+from bson.errors import InvalidId
 from flask_login import UserMixin  # , current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from pymongo import MongoClient
@@ -151,7 +152,7 @@ def get_puzzle_by_id(puzzle_id):
     Get a puzzle from the database by its id.
     """
     db = get_db()
-    return db.puzzles.find({"_id": ObjectId(puzzle_id)})
+    return db.puzzles.find_one({"_id": ObjectId(puzzle_id)})
 
 
 def save_puzzle(author_id, puzzle_name, board, is_public=True):
@@ -162,7 +163,7 @@ def save_puzzle(author_id, puzzle_name, board, is_public=True):
     doc = {
         "puzzle_name": puzzle_name,
         "author_id": author_id,
-        "board_json": board,  # the 20×10 mino matrix
+        "board_json": board,
         "solutions_json": [],
         "active_solution_json": None,
         "created_at": datetime.now(timezone.utc),
@@ -172,3 +173,76 @@ def save_puzzle(author_id, puzzle_name, board, is_public=True):
     result = db.puzzles.insert_one(doc)
     doc["_id"] = result.inserted_id
     return Puzzle(doc)
+
+
+def serialize_board(doc):
+    """
+    Convert a raw MongoDB puzzle document to a dict with serializable fields.
+    """
+    return {
+        "puzzle_id": str(doc["_id"]),
+        "puzzle_name": doc.get("puzzle_name"),
+        "is_public": doc.get("is_public", False),
+        "created_at": str(doc.get("created_at", "")),
+        "like_count": doc.get("like_count", 0),
+    }
+
+
+BOARDS_PER_PAGE = 10
+
+
+def get_user_boards(user_id, sort="newest", search="", public_only=False, page=1):
+    """
+    Get a paginated list of boards for a specific user.
+    Supports sorting by date or likes, filtering by public status, and searching by name.
+    """
+    db = get_db()
+
+    query = {"author_id": user_id}
+    if public_only:
+        query["is_public"] = True
+    if search:
+        query["puzzle_name"] = {"$regex": search, "$options": "i"}
+
+    sort_field = {
+        "newest": [("created_at", -1)],
+        "oldest": [("created_at", 1)],
+        "likes": [("like_count", -1)],
+    }.get(sort, [("created_at", -1)])
+
+    total = db.puzzles.count_documents(query)
+    skip = (page - 1) * BOARDS_PER_PAGE
+    docs = db.puzzles.find(query).sort(sort_field).skip(skip).limit(BOARDS_PER_PAGE)
+    return [serialize_board(doc) for doc in docs], total
+
+
+def get_community_boards(limit=6):
+    """
+    Get recent public boards with author username resolved from the users collection.
+    """
+    db = get_db()
+    docs = db.puzzles.find({"is_public": True}).sort([("created_at", -1)]).limit(limit)
+    boards = []
+    for doc in docs:
+        board = serialize_board(doc)
+        try:
+            author_id = doc.get("author_id")
+            user = (
+                db.users.find_one({"_id": ObjectId(author_id)}) if author_id else None
+            )
+            board["author_username"] = user["username"] if user else "unknown"
+        except InvalidId:
+            board["author_username"] = "unknown"
+        boards.append(board)
+    return boards
+
+
+def get_saved_boards(user_id, limit=4):
+    """
+    Get a small preview of the user's most recent boards for the dashboard.
+    """
+    db = get_db()
+    docs = (
+        db.puzzles.find({"author_id": user_id}).sort([("created_at", -1)]).limit(limit)
+    )
+    return [serialize_board(doc) for doc in docs]

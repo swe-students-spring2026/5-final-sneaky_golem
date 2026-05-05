@@ -4,6 +4,7 @@ The main interface between the frontend and backend services.
 """
 
 import base64
+import json
 import os
 
 from flask import (
@@ -30,6 +31,10 @@ from app.services import (
     get_puzzles,
     get_puzzle_by_id,
     save_puzzle,
+    get_user_boards,
+    get_community_boards,
+    get_saved_boards,
+    BOARDS_PER_PAGE,
 )
 
 main = Blueprint("main", __name__)
@@ -103,11 +108,12 @@ def logout():
 def dashboard():
     """
     Displays the user's dashboard.
-
-    Check if this is aligned with Tim's templates.
     """
     return render_template(
-        "dashboard.html", user=current_user, community_boards=get_puzzles()
+        "dashboard.html",
+        user=current_user,
+        saved_boards=get_saved_boards(current_user.id),
+        community_boards=get_community_boards(),
     )
 
 
@@ -117,8 +123,24 @@ def community_puzzle(puzzle_id):
     """
     Display a certain community puzzle from its id.
     """
+    puzzle = get_puzzle_by_id(puzzle_id)
+    if puzzle is None:
+        return "Board not found", 404
+
+    solutions = puzzle.get("solutions_json", [])
+    solutions_list = []
+    for s in solutions:
+        solutions_list.append({k: v for k, v in s.items() if k != "steps"})
+
     return render_template(
-        "saved_board.html", user=current_user, puzzle=get_puzzle_by_id(puzzle_id)
+        "saved_board.html",
+        user=current_user,
+        puzzle=puzzle,
+        board_json=json.dumps(puzzle.get("board_json")),
+        solutions_json=json.dumps(solutions_list, default=str),
+        active_solution_json=json.dumps(
+            puzzle.get("active_solution_json"), default=str
+        ),
     )
 
 
@@ -207,3 +229,61 @@ def save_board():
         return jsonify({"error": f"Database error: {exc}"}), 500
     except ValueError as exc:
         return jsonify({"error": f"Invalid data: {exc}"}), 400
+
+
+def build_page_range(current_page, total_pages):
+    """
+    Build a list of page numbers with ellipsis for large page counts.
+    Example: [1, 2, '...', 9, 10]
+    """
+    pages = []
+    for p in range(1, total_pages + 1):
+        if p == 1 or p == total_pages or abs(p - current_page) <= 1:
+            pages.append(p)
+        elif pages and pages[-1] != "...":
+            pages.append("...")
+    return pages
+
+
+@main.route("/boards", methods=["GET"])
+@login_required
+def boards():
+    """
+    GET: Render the user's saved boards with search, sort, and pagination.
+    """
+    sort = request.args.get("sort", "newest")
+    page = int(request.args.get("page", 1))
+    public_only = request.args.get("public_only", "false") == "true"
+    search = request.args.get("search", "")
+
+    board_list, total = get_user_boards(
+        current_user.id, sort=sort, search=search, public_only=public_only, page=page
+    )
+    total_pages = max(1, (total + BOARDS_PER_PAGE - 1) // BOARDS_PER_PAGE)
+
+    return render_template(
+        "boards.html",
+        boards=board_list,
+        current_sort=sort,
+        public_only=public_only,
+        search_query=search,
+        total_boards=total,
+        total_pages=total_pages,
+        current_page=page,
+        page_range=build_page_range(page, total_pages),
+    )
+
+
+# to be finished
+@main.route("/community", methods=["GET"])
+@login_required
+def community():
+    """
+    GET: Community boards list.
+    """
+    return render_template(
+        "dashboard.html",
+        user=current_user,
+        community_boards=get_puzzles(),
+        saved_boards=[],
+    )
