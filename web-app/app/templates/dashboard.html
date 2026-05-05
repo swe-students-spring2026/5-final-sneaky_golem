@@ -11,7 +11,7 @@
     </div>
     <div class="grid-3">
         <a href="/board/new" class="box action-box">NEW BOARD</a>
-        <a href="/import" class="box action-box">IMPORT BOARD</a>
+        <a href="/board/import" class="box action-box">IMPORT BOARD</a>
         <a href="/community" class="box action-box">COMMUNITY BOARDS</a>
     </div>
 </div>
@@ -39,7 +39,7 @@
     </div>
     <div class="grid-3">
         {% for puzzle in community_boards %}
-        <a href="/community/board/{{ puzzle._id }}" class="box" style="display:block;">
+        <a href="/board/{{ puzzle.puzzle_id }}" class="box" style="display:block;">
             <div class="box-label">by {{ puzzle.author_username }} &nbsp;·&nbsp; {{ puzzle.created_at }}</div>
             <div>{{ puzzle.puzzle_name }}</div>
         </a>

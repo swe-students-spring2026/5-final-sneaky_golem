@@ -134,14 +134,14 @@ const reversed = { // mirrored pieces
 };
 
 var imgs = { // piece images
-	grid: 'static/zztetris/assets/pieceSprite/grid.png',
-	Z: 'static/zztetris/assets/pieceSprite/z.png',
-	L: 'static/zztetris/assets/pieceSprite/l.png',
-	O: 'static/zztetris/assets/pieceSprite/o.png',
-	S: 'static/zztetris/assets/pieceSprite/s.png',
-	I: 'static/zztetris/assets/pieceSprite/i.png',
-	J: 'static/zztetris/assets/pieceSprite/j.png',
-	T: 'static/zztetris/assets/pieceSprite/t.png',
+	grid: '/static/zztetris/assets/pieceSprite/grid.png',
+	Z: '/static/zztetris/assets/pieceSprite/z.png',
+	L: '/static/zztetris/assets/pieceSprite/l.png',
+	O: '/static/zztetris/assets/pieceSprite/o.png',
+	S: '/static/zztetris/assets/pieceSprite/s.png',
+	I: '/static/zztetris/assets/pieceSprite/i.png',
+	J: '/static/zztetris/assets/pieceSprite/j.png',
+	T: '/static/zztetris/assets/pieceSprite/t.png',
 };
 
 // default settings
@@ -537,7 +537,20 @@ function newPiece() {
 	xPOS = spawn[0];
 	yPOS = spawn[1];
 	rot = 0;
-	if (queue[0] == '|') queue.shift();
+	if (queue[0] == '|'){
+		if(queue.length == 1){
+			if(holdP != ''){
+				queue.push(holdP);
+				holdP = '';
+				queue.push('|');
+			}
+			else{
+				endPuzzle();
+				queue = [];
+			}
+		}
+		queue.shift();
+	}
 	piece = queue.shift();
 	if(queue.length > 0){
 		if(checkTopOut()){
@@ -558,6 +571,7 @@ function newPiece() {
 }
 
 function notify(text) {
+	return
 	const inANIM = 'animate__animated animate__bounceIn';
 	const outANIM = 'animate__animated animate__fadeOutDown';
 	notf.removeClass(inANIM);
@@ -624,6 +638,7 @@ function redo() {
 function callback(gravity=700, special_restart=false, cheese=false) {
 	// pieces = SRSX.pieces;
 	// kicks = SRSX.kicks;
+	setBoard(document.getElementById("board-data").getAttribute('data'), document.getElementById("queue-data").getAttribute('data'));
 	kicks = kicksets['SRS+'];
     lastCol = Math.floor(Math.random() * 10);
 
@@ -834,7 +849,7 @@ function callback(gravity=700, special_restart=false, cheese=false) {
 		if(queue.length == 0){
 			return
 		}
-		const s = sfxCache[sfx] ??= new Audio(`static/zztetris/assets/sfx/${sfx}.wav`);
+		const s = sfxCache[sfx] ??= new Audio(`/static/zztetris/assets/sfx/${sfx}.wav`);
 		if (overlap) {
 			s.currentTime = 0
 		}
@@ -976,9 +991,7 @@ function callback(gravity=700, special_restart=false, cheese=false) {
 		clearActive();
 		
 		cleared = checkLines();
-		if(queue.length == 1){
-			endPuzzle();
-		}
+		logBoard();
 		newPiece();
 
         if (cheese) {
@@ -1001,11 +1014,13 @@ function callback(gravity=700, special_restart=false, cheese=false) {
         }
 
 		updateHistory();
-		logBoard();
 	}
 
 	function hold() {
 		//if(held) return;
+		if(queue.length == 1){
+			return;
+		}
 		rot = 0;
 		xPOS = spawn[0];
 		yPOS = spawn[1];
@@ -1117,8 +1132,8 @@ function callback(gravity=700, special_restart=false, cheese=false) {
 		if (pc) text += '\nPERFECT\nCLEAR!';
         if (b2b > 0 && (tspin || cleared == 4)) text += ' x' + b2b.toString();
 		if (text != '') notify(text);
-		if (tspin || cleared == 4) playSnd('ClearTetra', true);
-		if (pc) playSnd('PerfectClear', 1);
+		//if (tspin || cleared == 4) playSnd('ClearTetra', true);
+		//if (pc) playSnd('PerfectClear', 1);
 
         return cleared;
 

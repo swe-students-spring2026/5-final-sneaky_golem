@@ -17,6 +17,9 @@
             <button id="rename-btn" class="btn" style="width:100%; margin-top:6px;">RENAME</button>
             <a href="/board/{{ puzzle.puzzle_id }}/edit"
                 class="btn" style="display:block; text-align:center; margin-top:6px;">OPEN EDITOR</a>
+            <form action="{{ url_for('main.puzzle_edit_solution', puzzle_id=puzzle.puzzle_id) }}">
+                <button id="btn-solve" class="btn" style="width:100%;">START SOLVE</button>
+            </form>
             <a href="/board/{{ puzzle.puzzle_id }}/share"
                 class="btn" style="display:block; text-align:center; margin-top:6px;">SHARE WITH COMMUNITY</a>
         </div>

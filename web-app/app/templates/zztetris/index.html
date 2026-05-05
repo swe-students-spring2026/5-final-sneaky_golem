@@ -14,7 +14,6 @@
 	<link rel="stylesheet" type="text/css" href="{{url_for('static', filename='zztetris/styles/paint_bucket.css')}}" />
 	<link rel="stylesheet" type="text/css" href="{{url_for('static', filename='zztetris/styles/import_export.css')}}" />
 	<link rel="stylesheet" type="text/css" href="{{url_for('static', filename='zztetris/styles/board_settings.css')}}" />
-	<!-- 
 	<head>
 		<meta charset="UTF-8" />
 		<meta property="og:type" content="website" />
@@ -29,8 +28,9 @@
 			content="https://cdn.discordapp.com/attachments/209687919361916928/898230618012418088/unknown.png"
 		/>
 		<title>ZZTetris</title>
+		<div id="board-data" data="{{puzzle.board_json}}"></div>
+		<div id="queue-data" data="{{puzzle.queue_json}}"></div>
 	</head>
-	-->
 	<body style="background-color: #222; color: #fff">
 		<div style="top: 50%; left: 50%; position: fixed; transform: translate(-50%, -50%); display: flex">
 			<div class="queue">
@@ -51,88 +51,12 @@
 			</div>
 
 			<div class="board-settings">
-				<h3>Options</h3>
-				<button class="button button--shuffle" onclick="this.blur(); shuffleQueue();">Queue</button>
-				<button class="button button--shuffle" onclick="this.blur(); setBoard();">
-					Set Board
-				</button>
-
-				<button class="button" onclick="this.blur(); mirror()">Mirror</button>
-				<button class="button" onclick="this.blur(); fullMirror()">Full Mirror</button>
-
-				<form class="paint-bucket" name="paintbucket">
-					<label for="X">
-						<input type="radio" name="paintbucket" class="paintbucket" id="X" value="X" checked />
-						<span></span>
-					</label>
-					<label for="I">
-						<input type="radio" name="paintbucket" class="paintbucket" id="I" value="I" />
-						<span></span>
-					</label>
-					<label for="J">
-						<input type="radio" name="paintbucket" class="paintbucket" id="J" value="J" />
-						<span></span>
-					</label>
-					<label for="S">
-						<input type="radio" name="paintbucket" class="paintbucket" id="S" value="S" />
-						<span></span>
-					</label>
-					<label for="O">
-						<input type="radio" name="paintbucket" class="paintbucket" id="O" value="O" />
-						<span></span>
-					</label>
-					<label for="Z">
-						<input type="radio" name="paintbucket" class="paintbucket" id="Z" value="Z" />
-						<span></span>
-					</label>
-					<label for="L">
-						<input type="radio" name="paintbucket" class="paintbucket" id="L" value="L" />
-						<span></span>
-					</label>
-					<label for="T">
-						<input type="radio" name="paintbucket" class="paintbucket" id="T" value="T" />
-						<span></span>
-					</label>
+				<form action="/board/{{ id }}" method="POST">
+					<button class="button" type="submit" name="solution-data" id="solution-data" value="">Save Solution</button>
 				</form>
-				<div><input type="checkbox" checked id="autocolor" /> <label for="autocolor">autocolor</label></div>
-				<div><input type="checkbox" checked id="grav" /> <label for="grav">gravity</label></div>
 				<p></p>
-                <form>
-					<label for="garbageCol">Garbage:</label>
-					<select name="garbageCol" id="garbageCol">
-						<option value=0>0th col</option>
-						<option value=1>1th col</option>
-						<option value=2>2th col</option>
-						<option value=3>3th col</option>
-                        <option value=4>4th col</option>
-                        <option value=5>5th col</option>
-                        <option value=6>6th col</option>
-                        <option value=7>7th col</option>
-                        <option value=8>8th col</option>
-                        <option value=9>9th col</option>
-					</select>
-				</form>
-				<button class="button" onclick="this.blur(); garbage(document.getElementById('garbageCol').value);">Submit</button>
-				<form>
-					<label for="kickset">Kickset:</label>
-					<select name="kickset" id="kickset">
-						<option value="SRS+">SRS+</option>
-						<option value="SRS">SRS</option>
-						<option value="kzl">kzl</option>
-						<option value="alge">alge</option>
-						<option value="SRS-X">SRS-X</option>
-                        <option value="Tetra-Online">Tetra-Online</option>
-						<option value="ASC">ASC</option>
-                        <option value="none">none</option>
-					</select>
-				</form>
-				<button class="button" onclick="this.blur(); updateKickTable()">Submit</button>
-				<p></p>
-				<button class="button" onclick="this.blur(); sfinder()"; >SFinder</button>
 			</div>
 		</div>
-
-		<a class="button" target="_blank" href="https://github.com/swng/zztetris#readme">About</a>
 		<button class="button" target="popup" onclick="ctrlsPopup()">Game Settings</button>
 
         <div id = "tcc" style class = "tc">
