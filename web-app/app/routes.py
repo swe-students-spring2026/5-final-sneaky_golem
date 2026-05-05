@@ -3,6 +3,9 @@ Defines all HTTP API endpoints for the web application:
 The main interface between the frontend and backend services.
 """
 
+import base64
+import os
+
 from flask import (
     Blueprint,
     request,
@@ -10,12 +13,14 @@ from flask import (
     redirect,
     url_for,
     flash,
+    jsonify,
 )
-# import jsonify
+
+import requests
 
 from flask_login import login_user, logout_user, login_required, current_user
-# from werkzeug.security import check_password_hash
-# import requests
+
+from pymongo.errors import PyMongoError
 
 from app.services import (
     get_user_by_username,
@@ -30,7 +35,12 @@ from app.services import (
 
 import json
 
-main = Blueprint('main', __name__)
+main = Blueprint("main", __name__)
+
+ML_CLIENT_URL = os.getenv(
+    "ML_CLIENT_URL", "http://localhost:5001"
+)  # change this as needed.
+
 
 @main.route("/login", methods=["GET", "POST"])
 def login():
@@ -44,14 +54,15 @@ def login():
         user = get_user_by_username(username)
         if user and authenticate_user(username, password):
             login_user(user)
-            print("User logged in: %s", username)
+            print("User logged in: %s", username)  # comment out this later
             next_page = request.args.get("next")
             return redirect(next_page or url_for("main.dashboard"))
 
         flash("Invalid username or password.", "error")
-        print("Failed login attempt for username: %s", username)
+        print("Failed login attempt for username: %s", username)  # same
 
     return render_template("login.html")
+
 
 @main.route("/register", methods=["GET", "POST"])
 def register():
@@ -78,25 +89,30 @@ def register():
 
     return render_template("register.html")
 
-@main.route('/logout')
+
+@main.route("/logout")
 @login_required
 def logout():
     """
     Ends the user session.
     """
     logout_user()
-    flash('You have been logged out.')
-    return redirect(url_for('login'))
+    flash("You have been logged out.")
+    return redirect(url_for("main.login"))
+
 
 @main.route("/", methods=["GET"])
 @login_required
 def dashboard():
     """
     Displays the user's dashboard.
-    
+
     Check if this is aligned with Tim's templates.
     """
-    return render_template("dashboard.html", user=current_user, community_boards=get_puzzles())
+    return render_template(
+        "dashboard.html", user=current_user, community_boards=get_puzzles()
+    )
+
 
 @main.route('/board/<puzzle_id>', methods=["GET", "POST"])
 @login_required
@@ -134,3 +150,81 @@ def tetris_board():
     """
     temp_puzzle()
     return render_template("zztetris/index.html", user=current_user)
+
+
+# ---- Endpoint for ML Client ----
+@main.route("/api/analyze-board", methods=["POST"])
+@login_required
+def analyze_board():
+    """
+    Accept a screenshot upload from the frontend, forward it to the ml-client,
+    and return the 10×20 board matrix as JSON.
+
+    Expects: multipart/form-data with field "image" (PNG/JPEG file).
+    Returns: { "board": [[str, ...], ...] }  (20 rows × 10 cols of mino codes)
+             or { "error": "..." } on failure.
+    """
+    if "image" not in request.files:
+        return jsonify({"error": "No image file provided."}), 400
+
+    image_file = request.files["image"]
+    if image_file.filename == "":
+        return jsonify({"error": "Empty filename."}), 400
+    image_b64 = base64.b64encode(image_file.read()).decode("utf-8")
+    try:
+        response = requests.post(
+            f"{ML_CLIENT_URL}/extract-board",
+            json={"image": image_b64},
+            timeout=10,
+        )
+        response.raise_for_status()
+    except requests.exceptions.ConnectionError:
+        return jsonify({"error": "ML client is unreachable."}), 502
+    except requests.exceptions.Timeout:
+        return jsonify({"error": "ML client timed out."}), 504
+
+    data = response.json()
+
+    if "board" not in data:
+        return jsonify({"error": "Unexpected response from ML client."}), 502
+
+    return jsonify({"board": data["board"]}), 200
+
+
+@main.route("/api/save-board", methods=["POST"])
+@login_required
+def save_board():
+    """
+    Save a board matrix (from the frontend or after /api/analyze-board)
+    as a named puzzle in the database.
+
+    Expects JSON: {
+        "puzzle_name": str,
+        "board":       [[str, ...], ...],   # 20×10 mino matrix
+        "is_public":   bool  (optional, default true)
+    }
+    Returns: { "puzzle_id": str }
+    """
+    body = request.get_json(silent=True)
+    if not body:
+        return jsonify({"error": "JSON body required."}), 400
+    puzzle_name = body.get("puzzle_name", "").strip()
+    board = body.get("board")
+    is_public = body.get("is_public", True)
+
+    if not puzzle_name:
+        return jsonify({"error": "puzzle_name is required."}), 400
+    if not board or not isinstance(board, list):
+        return jsonify({"error": "board is required and must be a list."}), 400
+    try:
+        puzzle = save_puzzle(
+            author_id=current_user.id,
+            puzzle_name=puzzle_name,
+            board=board,
+            is_public=is_public,
+        )
+        return jsonify({"puzzle_id": str(puzzle.puzzle_id[0])}), 201
+    except PyMongoError as exc:
+        return jsonify({"error": f"Database error: {exc}"}), 500
+    except ValueError as exc:
+        return jsonify({"error": f"Invalid data: {exc}"}), 400
