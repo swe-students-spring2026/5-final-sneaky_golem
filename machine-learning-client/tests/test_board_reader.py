@@ -1,11 +1,21 @@
+# pylint: disable=no-member
+
 """
 Tests for board_reader.py.
 """
 
 import numpy as np
 import cv2
-from app.board_reader import crop_board, get_color_matrix, get_board_matrix, visualize_board, visualize_matrix_avg_color, extract_board
+from app.board_reader import (
+    crop_board,
+    get_color_matrix,
+    get_board_matrix,
+    visualize_board,
+    visualize_matrix_avg_color,
+    extract_board,
+)
 from app.board_reader import EMPTY_LIGHTNESS_THRESHOLD, MINO_PALETTE
+
 
 def test_crop_board_returns_none_when_no_lines():
     """
@@ -14,17 +24,20 @@ def test_crop_board_returns_none_when_no_lines():
     img = np.zeros((100, 100, 3), dtype=np.uint8)
     assert crop_board(img) is None
 
+
 def test_get_color_matrix_none_input():
     """
     Make sure get_color_matrix() handles None input properly.
     """
     assert get_color_matrix(None) is None
 
+
 def test_get_board_matrix_none_input():
     """
     Make sure get_board_matrix() handles None input properly.
     """
     assert get_board_matrix(None) is None
+
 
 def test_get_color_matrix_handles_small_image():
     """
@@ -37,6 +50,7 @@ def test_get_color_matrix_handles_small_image():
     assert len(matrix) == 20
     assert len(matrix[0]) == 10
 
+
 def test_get_board_matrix_empty_threshold():
     """
     Make sure colors below the lightness threshold are classified as empty ('X').
@@ -48,6 +62,7 @@ def test_get_board_matrix_empty_threshold():
 
     assert all(cell == "X" for row in board for cell in row)
 
+
 def test_get_board_matrix_palette_matching():
     """
     Make sure colors close to a palette value map to the correct mino.
@@ -58,11 +73,13 @@ def test_get_board_matrix_palette_matching():
 
     assert all(cell == "T" for row in board for cell in row)
 
+
 def test_visualize_board_none():
     """
     Make sure visualize_board returns None when given None input.
     """
     assert visualize_board(None) is None
+
 
 def test_visualize_matrix_none():
     """
@@ -70,12 +87,14 @@ def test_visualize_matrix_none():
     """
     assert visualize_matrix_avg_color(None) is None
 
+
 def test_extract_board_failure():
     """
     Make sure extract_board returns None when no board can be detected.
     """
     img = np.zeros((200, 200, 3), dtype=np.uint8)
     assert extract_board(img) is None
+
 
 def test_extract_board_success():
     """

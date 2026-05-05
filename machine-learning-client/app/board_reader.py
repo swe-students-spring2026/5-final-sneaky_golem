@@ -1,3 +1,5 @@
+# pylint: disable=no-member
+
 """
 Converts a screenshot of a Tetris board into a 10x20 matrix of mino colors.
 """
@@ -23,7 +25,12 @@ BOARD_ROWS = 20
 
 EMPTY_LIGHTNESS_THRESHOLD = 30
 
-def crop_board(image: np.ndarray) -> Optional[np.ndarray]:
+
+# pylint: disable=too-many-locals
+def crop_board(
+    image: np.ndarray,
+) -> Optional[np.ndarray]:
+    # break down this function if i have time
     """
     Crop the Tetris board from a screenshot.
     """
@@ -37,12 +44,7 @@ def crop_board(image: np.ndarray) -> Optional[np.ndarray]:
     # cv2.waitKey(0)
 
     lines = cv2.HoughLinesP(
-        edges,
-        rho=1,
-        theta=np.pi / 180,
-        threshold=100,
-        minLineLength=100,
-        maxLineGap=20
+        edges, rho=1, theta=np.pi / 180, threshold=100, minLineLength=100, maxLineGap=20
     )
 
     if lines is None:
@@ -128,6 +130,7 @@ def crop_board(image: np.ndarray) -> Optional[np.ndarray]:
 
     return cropped
 
+
 def cluster_by_bottom(vertical_lines, threshold=10):
     """
     Find clusters of vertical lines by their bottom-most y-value.
@@ -151,12 +154,10 @@ def cluster_by_bottom(vertical_lines, threshold=10):
                 break
 
         if not placed:
-            clusters.append({
-                "lines": [line],
-                "bottom_mean": bottom
-            })
+            clusters.append({"lines": [line], "bottom_mean": bottom})
 
     return clusters
+
 
 def x_mid(line):
     """
@@ -164,6 +165,7 @@ def x_mid(line):
     """
 
     return (line[0] + line[2]) / 2
+
 
 def cluster_score(cluster):
     """
@@ -173,7 +175,12 @@ def cluster_score(cluster):
     xs = [x_mid(l) for l in cluster["lines"]]
     return max(xs) - min(xs)
 
-def get_color_matrix(image: Optional[np.ndarray]) -> Optional[list[list[float]]]:
+
+# pylint: disable=too-many-locals
+def get_color_matrix(
+    image: Optional[np.ndarray],
+) -> Optional[list[list[float]]]:
+    # break down this function if i have time
     """
     Get a 10x20 matrix of average colors from the cropped board image.
     """
@@ -202,7 +209,7 @@ def get_color_matrix(image: Optional[np.ndarray]) -> Optional[list[list[float]]]
             x2 = (c + 1) * cell_w
 
             margin = int(min(cell_w, cell_w) * 0.2)
-            cell = image[y1+margin:y2-margin, x1+margin:x2-margin]
+            cell = image[y1 + margin : y2 - margin, x1 + margin : x2 - margin]
 
             if cell.size == 0:
                 mean_color = [0, 0, 0]
@@ -219,6 +226,7 @@ def get_color_matrix(image: Optional[np.ndarray]) -> Optional[list[list[float]]]
     matrix.reverse()
 
     return matrix
+
 
 def get_board_matrix(matrix: Optional[list[list[float]]]) -> Optional[list[list[str]]]:
     """
@@ -256,7 +264,10 @@ def get_board_matrix(matrix: Optional[list[list[float]]]) -> Optional[list[list[
 
     return board
 
-def visualize_matrix_avg_color(matrix: Optional[list[list[list[float]]]], cell_size: int = 20) -> Optional[np.ndarray]:
+
+def visualize_matrix_avg_color(
+    matrix: Optional[list[list[list[float]]]], cell_size: int = 20
+) -> Optional[np.ndarray]:
     """
     Convert a 20x10 averaged color matrix back into an image for visualization
     Mainly for debugging purposes.
@@ -283,7 +294,10 @@ def visualize_matrix_avg_color(matrix: Optional[list[list[list[float]]]], cell_s
 
     return img
 
-def visualize_board(matrix: Optional[list[list[list[int]]]], cell_size: int = 20) -> Optional[np.ndarray]:
+
+def visualize_board(
+    matrix: Optional[list[list[list[int]]]], cell_size: int = 20
+) -> Optional[np.ndarray]:
     """
     Convert the board matrix to an image with the colors, for easy visualization.
     """
@@ -311,6 +325,7 @@ def visualize_board(matrix: Optional[list[list[list[int]]]], cell_size: int = 20
 
     return img
 
+
 def extract_board(image: np.ndarray) -> Optional[list[list[str]]]:
     """
     The whole board extraction pipeline.
@@ -322,36 +337,36 @@ def extract_board(image: np.ndarray) -> Optional[list[list[str]]]:
     color_matrix = get_color_matrix(cropped)
     return get_board_matrix(color_matrix)
 
-def main():
-    """testing the functions"""
-    # image = cv2.imread("images/test4.png")
 
-    # cropped = crop_board(image)
+# def main():
+# image = cv2.imread("images/test4.png")
 
-    # cv2.imshow("original", image)
-    # cv2.waitKey(0)
+# cropped = crop_board(image)
 
-    # cv2.imshow("cropped", cropped)
-    # cv2.waitKey(0)
+# cv2.imshow("original", image)
+# cv2.waitKey(0)
 
-    # color_matrix = get_color_matrix(cropped)
+# cv2.imshow("cropped", cropped)
+# cv2.waitKey(0)
 
-    # averaged_colors = visualize_matrix_avg_color(color_matrix)
-    # cv2.imshow("averaged colors", averaged_colors)
-    # cv2.waitKey(0)
+# color_matrix = get_color_matrix(cropped)
 
-    # board_matrix = get_board_matrix(color_matrix)
-    # board_matrix = extract_board(image)
+# averaged_colors = visualize_matrix_avg_color(color_matrix)
+# cv2.imshow("averaged colors", averaged_colors)
+# cv2.waitKey(0)
 
-    # print(board_matrix)
+# board_matrix = get_board_matrix(color_matrix)
+# board_matrix = extract_board(image)
 
-    # reconstructed_board = visualize_board(board_matrix)
+# print(board_matrix)
 
-    # if reconstructed_board is None:
-        # print("board extraction failed")
-    # else:
-        # cv2.imshow("reconstructed board", reconstructed_board)
-        # cv2.waitKey(0)
-        # cv2.destroyAllWindows()
+# reconstructed_board = visualize_board(board_matrix)
+
+# if reconstructed_board is None:
+# print("board extraction failed")
+# else:
+# cv2.imshow("reconstructed board", reconstructed_board)
+# cv2.waitKey(0)
+# cv2.destroyAllWindows()
 
 # main()
