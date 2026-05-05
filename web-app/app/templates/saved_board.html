@@ -12,22 +12,17 @@
 <div class="board-layout">
     <div class="board-sidebar">
         <div class="sidebar-section">
-        <label class="sidebar-label">NAME</label>
-        <input id="board-name-input" class="board-input" type="text"
-                value="{{ puzzle.puzzle_name }}" />
-        <button id="rename-btn" class="btn" style="width:100%; margin-top:8px;">RENAME</button>
+            <input id="board-name-input" class="board-input" type="text"
+                    value="{{ puzzle.puzzle_name }}" />
+            <button id="rename-btn" class="btn" style="width:100%; margin-top:6px;">RENAME</button>
+            <a href="/board/{{ puzzle.puzzle_id }}/edit"
+                class="btn" style="display:block; text-align:center; margin-top:6px;">OPEN EDITOR</a>
+            <a href="/board/{{ puzzle.puzzle_id }}/share"
+                class="btn" style="display:block; text-align:center; margin-top:6px;">SHARE WITH COMMUNITY</a>
         </div>
 
-        <div class="sidebar-section">
-        <label class="sidebar-label">EDIT</label>
-        <a href="/board/{{ puzzle.puzzle_id }}/edit"
-            class="btn" style="display:block; text-align:center;">OPEN EDITOR</a>
-        </div>
-
-        <div class="sidebar-section">
-        <label class="sidebar-label">SHARE</label>
-        <a href="/board/{{ puzzle.puzzle_id }}/share"
-            class="btn" style="display:block; text-align:center;">SHARE WITH COMMUNITY</a>
+        <div class="sidebar-section" style="margin-top:40px;">
+            <button id="delete-btn" class="btn" style="width:100%;">DELETE BOARD</button>
         </div>
     </div>
 
@@ -36,11 +31,11 @@
         </div>
 
         <div class="solution-controls">
-        <button id="btn-first" class="btn ctrl-btn">&#9664;&#9664; FIRST</button>
-        <button id="btn-prev"  class="btn ctrl-btn">&#9664; PREV</button>
-        <span   id="step-counter" class="ctrl-step">STEP — / —</span>
-        <button id="btn-next"  class="btn ctrl-btn">NEXT &#9654;</button>
-        <button id="btn-last"  class="btn ctrl-btn">LAST &#9654;&#9654;</button>
+            <button id="btn-first" class="btn ctrl-btn">&#9664;&#9664; FIRST</button>
+            <button id="btn-prev"  class="btn ctrl-btn">&#9664; PREV</button>
+            <span   id="step-counter" class="ctrl-step">STEP — / —</span>
+            <button id="btn-next"  class="btn ctrl-btn">NEXT &#9654;</button>
+            <button id="btn-last"  class="btn ctrl-btn">LAST &#9654;&#9654;</button>
         </div>
     </div>
 
@@ -48,17 +43,17 @@
         <label class="sidebar-label">SOLUTIONS</label>
 
         <div class="sort-btns">
-        <button id="sort-date"  class="btn sort-btn sort-active">DATE</button>
-        <button id="sort-likes" class="btn sort-btn">LIKES</button>
+            <button id="sort-date"  class="btn sort-btn sort-active">DATE</button>
+            <button id="sort-likes" class="btn sort-btn">LIKES</button>
         </div>
 
         <div id="solution-list">
         </div>
 
         <div class="pagination">
-        <button id="page-prev" class="btn ctrl-btn">&#9664;</button>
-        <span   id="page-counter" class="ctrl-step">1 / 1</span>
-        <button id="page-next" class="btn ctrl-btn">&#9654;</button>
+            <button id="page-prev" class="btn ctrl-btn">&#9664;</button>
+            <span   id="page-counter" class="ctrl-step">1 / 1</span>
+            <button id="page-next" class="btn ctrl-btn">&#9654;</button>
         </div>
     </div>
 

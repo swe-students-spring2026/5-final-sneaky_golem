@@ -1,0 +1,62 @@
+{% extends "template.html" %}
+
+{% block title %}Edit Puzzle{% endblock %}
+
+{% block content %}
+<script id="data-puzzle-id" type="application/json">"{{ puzzle_id }}"</script>
+<script id="data-board"     type="application/json">{{ board_json | safe }}</script>
+<script id="data-queue"     type="application/json">{{ queue_json | safe }}</script>
+
+<h1 class="page-title">EDIT PUZZLE</h1>
+
+<div class="sidebar-section" style="margin-bottom: 20px;">
+    <label class="sidebar-label">PIECES</label>
+    <div style="display:flex; align-items:center; gap:16px; margin-top:12px;">
+        <div id="piece-palette" style="display:flex; gap:20px; align-items:center;"></div>
+        <button id="btn-rotate-left" class="btn ctrl-btn">&#8634; LEFT</button>
+        <button id="btn-rotate-right" class="btn ctrl-btn">RIGHT &#8635;</button>
+    </div>
+</div>
+
+<div class="sidebar-section" style="margin-bottom: 24px;">
+    <label class="sidebar-label">GARBAGE (CLICK CELL TO SET HOLE)</label>
+    <div style="margin-top:12px;"><div id="garbage-picker"></div></div>
+</div>
+
+<div class="board-layout" style="grid-template-columns: 180px 80px 1fr;">
+    <div class="board-sidebar">
+        <div class="sidebar-section">
+            <label class="sidebar-label">NAME</label>
+            <input id="board-name-input" class="board-input" type="text" placeholder="UNTITLED" value="{{ puzzle_name }}" />
+        </div>
+        <div class="sidebar-section">
+            <label class="sidebar-label">TOOL</label>
+            <button id="tool-delete" class="btn sort-btn sort-active" style="width:100%; margin-bottom:6px;">DELETE</button>
+            <button id="tool-draw" class="btn sort-btn" style="width:100%; margin-bottom:6px;">DRAW</button>
+            <button id="tool-erase" class="btn sort-btn" style="width:100%;">ERASE</button>
+            <div id="tool-warning" style="display:none; margin-top:10px; border:1px solid #fff; padding:8px; font-size:10px; letter-spacing:1px; line-height:1.6; color:#fff;">
+                WARNING: Drawing or erasing will often create an impossible Tetris board. It is only recommended to use these tools when there is an image parsing error.
+            </div>
+        </div>
+        <div class="sidebar-section">
+            <label class="sidebar-label">ACTIONS</label>
+            <button id="btn-clear" class="btn" style="width:100%; margin-bottom:6px;">CLEAR ALL</button>
+            <button id="btn-confirm" class="btn" style="width:100%;">SAVE</button>
+        </div>
+        <div id="status-msg" style="font-size:11px; letter-spacing:2px; color:#888;"></div>
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap:4px;">
+        <label class="sidebar-label">QUEUE</label>
+        <div id="piece-queue" style="overflow-y:auto; height:560px; border:1px solid #333;"></div>
+    </div>
+
+    <div class="board-center">
+        <div id="tetris-board" class="tetris-board tool-delete" style="user-select:none;"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/edit_board.js"></script>
+{% endblock %}

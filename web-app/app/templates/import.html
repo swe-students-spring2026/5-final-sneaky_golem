@@ -1,0 +1,34 @@
+{% extends "template.html" %}
+ 
+{% block title %}Import Board{% endblock %}
+ 
+{% block content %}
+<h1 class="page-title">IMPORT BOARD</h1>
+ 
+<div class="import-wrap">
+ 
+    <div id="import-upload">
+        <label class="sidebar-label">SELECT IMAGE</label>
+        <label for="import-file" class="btn import-label">CHOOSE FILE</label>
+        <input id="import-file" name="image" type="file" accept="image/*" class="import-file-input">
+    </div>
+ 
+    <div id="import-processing" class="import-hidden">
+        <span class="sidebar-label import-processing-label">PROCESSING...</span>
+    </div>
+ 
+    <div id="import-result" class="import-hidden">
+        <label class="sidebar-label">BOARD PREVIEW</label>
+        <div id="import-board" class="tetris-board"></div>
+        <div class="import-actions">
+            <button id="import-confirm" class="btn">CONFIRM</button>
+            <button id="import-delete" class="btn">DELETE</button>
+        </div>
+    </div>
+ 
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/import.js"></script>
+{% endblock %}

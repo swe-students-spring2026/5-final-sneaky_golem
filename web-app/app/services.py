@@ -155,15 +155,16 @@ def get_puzzle_by_id(puzzle_id):
     return db.puzzles.find_one({"_id": ObjectId(puzzle_id)})
 
 
-def save_puzzle(author_id, puzzle_name, board, is_public=True):
+def save_puzzle(author_id, puzzle_name, board, queue=None, is_public=True):
     """
-    Persist a board matrix as a puzzle document.
+    Persist a board matrix as a new puzzle document.
     """
     db = get_db()
     doc = {
         "puzzle_name": puzzle_name,
         "author_id": author_id,
         "board_json": board,
+        "queue_json": queue or [],
         "solutions_json": [],
         "active_solution_json": None,
         "created_at": datetime.now(timezone.utc),
@@ -173,6 +174,48 @@ def save_puzzle(author_id, puzzle_name, board, is_public=True):
     result = db.puzzles.insert_one(doc)
     doc["_id"] = result.inserted_id
     return Puzzle(doc)
+
+
+def update_puzzle(puzzle_id, name, matrix, queue):
+    """
+    Update an existing puzzle's name, board matrix, and queue.
+    """
+    db = get_db()
+    db.puzzles.update_one(
+        {"_id": ObjectId(puzzle_id)},
+        {
+            "$set": {
+                "puzzle_name": name,
+                "board_json": matrix,
+                "queue_json": queue,
+                "updated_at": datetime.now(timezone.utc),
+            }
+        },
+    )
+
+
+def rename_puzzle(puzzle_id, name):
+    """
+    Rename an existing puzzle.
+    """
+    db = get_db()
+    db.puzzles.update_one(
+        {"_id": ObjectId(puzzle_id)},
+        {
+            "$set": {
+                "puzzle_name": name,
+                "updated_at": datetime.now(timezone.utc),
+            }
+        },
+    )
+
+
+def delete_puzzle(puzzle_id):
+    """
+    Permanently delete a puzzle from the database.
+    """
+    db = get_db()
+    db.puzzles.delete_one({"_id": ObjectId(puzzle_id)})
 
 
 def serialize_board(doc):
