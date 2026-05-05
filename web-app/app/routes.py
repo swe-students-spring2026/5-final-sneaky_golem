@@ -36,6 +36,9 @@ from app.services import (
     get_community_boards,
     get_saved_boards,
     BOARDS_PER_PAGE,
+    update_username,
+    update_password,
+    delete_user,
 )
 
 main = Blueprint("main", __name__)
@@ -294,3 +297,89 @@ def community():
         community_boards=get_puzzles(),
         saved_boards=[],
     )
+
+
+# ---- endpoints for user settings ----
+@main.route("/settings", methods=["GET"])
+@login_required
+def settings():
+    """
+    GET: User settings.
+    """
+    return render_template("settings.html", user=current_user)
+
+
+@main.route("/settings/change-username", methods=["POST"])
+@login_required
+def change_username():
+    """
+    Change the user's username in settings.
+    """
+    new_username = request.form.get("new_username", "").strip()
+
+    if not new_username:
+        flash("Username cannot be empty.", "error")
+        return redirect(url_for("main.settings"))
+
+    try:
+        update_username(current_user.id, new_username)
+        flash("Username updated successfully.", "success")
+    except ValueError as exc:
+        flash(str(exc), "error")
+    except PyMongoError as exc:
+        flash(f"Database error: {exc}", "error")
+
+    return redirect(url_for("main.settings"))
+
+
+@main.route("/settings/change-password", methods=["POST"])
+@login_required
+def change_password():
+    """
+    Change the user's password in settings.
+    """
+    current_pw = request.form.get("current_password", "")
+    new_pw = request.form.get("new_password", "")
+    confirm_pw = request.form.get("confirm_password", "")
+
+    if not authenticate_user(current_user.username, current_pw):
+        flash("Current password is incorrect.", "error")
+        return redirect(url_for("main.settings"))
+
+    # if len(new_pw) < 6:
+    #     flash("New password must be at least 6 characters.", "error")
+    #     return redirect(url_for("main.settings"))
+
+    if new_pw != confirm_pw:
+        flash("New passwords do not match.", "error")
+        return redirect(url_for("main.settings"))
+
+    try:
+        update_password(current_user.id, new_pw)
+        flash("Password updated successfully.", "success")
+    except PyMongoError as exc:
+        flash(f"Database error: {exc}", "error")
+
+    return redirect(url_for("main.settings"))
+
+
+@main.route("/settings/delete-account", methods=["POST"])
+@login_required
+def delete_account():
+    """
+    Delete the user's account and all their associated data.
+    """
+    password = request.form.get("password", "")
+
+    if not authenticate_user(current_user.username, password):
+        flash("Incorrect password.", "error")
+        return redirect(url_for("main.settings"))
+
+    try:
+        delete_user(current_user.id)
+        logout_user()
+        flash("Account deleted.", "success")
+        return redirect(url_for("main.login"))
+    except PyMongoError as exc:
+        flash(f"Database error: {exc}", "error")
+        return redirect(url_for("main.settings"))

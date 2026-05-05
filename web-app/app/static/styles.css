@@ -447,3 +447,17 @@ a {
     padding: 0 4px;
     letter-spacing: 2px;
 }
+
+/* styling for settings. actually looks better without the following. */
+/* .settings-form {
+    max-width: 480px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.settings-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+} */

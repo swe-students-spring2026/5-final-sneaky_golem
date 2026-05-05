@@ -1,0 +1,82 @@
+{% extends "template.html" %}
+
+{% block title %}Settings{% endblock %}
+
+{% block content %}
+<h1 class="page-title">Settings</h1>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+        <div class="flash {{ category }}">{{ message }}</div>
+    {% endfor %}
+{% endwith %}
+
+<div class="section">
+    <div class="section-header">
+        <span class="section-title">Account</span>
+    </div>
+    <div class="box settings-form">
+        <span class="sidebar-label">Current Username</span>
+        <p>{{ user.username }}</p>
+    </div>
+</div>
+
+<div class="section">
+    <div class="section-header">
+        <span class="section-title">Change Username</span>
+    </div>
+    <form method="POST" action="{{ url_for('main.change_username') }}" class="settings-form">
+        <div class="box settings-form">
+            <div class="settings-field">
+                <span class="sidebar-label">New Username</span>
+                <input class="board-input" type="text" name="new_username"
+                       placeholder="{{ user.username }}" required>
+            </div>
+            <button type="submit" class="btn">UPDATE USERNAME</button>
+        </div>
+    </form>
+</div>
+
+<div class="section">
+    <div class="section-header">
+        <span class="section-title">Change Password</span>
+    </div>
+    <form method="POST" action="{{ url_for('main.change_password') }}" class="settings-form">
+        <div class="box settings-form">
+            <div class="settings-field">
+                <span class="sidebar-label">Current Password</span>
+                <input class="board-input" type="password" name="current_password" required>
+            </div>
+            <div class="settings-field">
+                <span class="sidebar-label">New Password</span>
+                <input class="board-input" type="password" name="new_password" required>
+            </div>
+            <div class="settings-field">
+                <span class="sidebar-label">Confirm New Password</span>
+                <input class="board-input" type="password" name="confirm_password" required>
+            </div>
+            <button type="submit" class="btn">UPDATE PASSWORD</button>
+        </div>
+    </form>
+</div>
+
+<div class="section">
+    <div class="section-header">
+        <span class="section-title">Danger Zone</span>
+    </div>
+    <form method="POST" action="{{ url_for('main.delete_account') }}"
+          class="settings-form"
+          onsubmit="return confirm('Are you sure? This cannot be undone.');">
+        <div class="box settings-form">
+            <p class="settings-muted">
+                Deleting your account permanently removes your profile and all your boards.
+            </p>
+            <div class="settings-field">
+                <span class="sidebar-label">Confirm Password to Delete</span>
+                <input class="board-input" type="password" name="password" required>
+            </div>
+            <button type="submit" class="btn">DELETE ACCOUNT</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

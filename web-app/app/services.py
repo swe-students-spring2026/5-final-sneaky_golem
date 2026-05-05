@@ -247,7 +247,6 @@ def get_saved_boards(user_id, limit=4):
     )
     return [serialize_board(doc) for doc in docs]
 
-
 def serialize_solution(doc, include_steps=False):
     """
     Convert a solution document to a dict with serializable fields.
@@ -264,3 +263,37 @@ def serialize_solution(doc, include_steps=False):
     if include_steps:
         result["steps"] = doc.get("steps", [])
     return result
+
+
+def update_username(user_id, new_username):
+    """
+    Update a user's username in db.
+    """
+    db = get_db()
+    if db.users.find_one({"username": new_username}):
+        raise ValueError(f"Username '{new_username}' is already taken.")
+    db.users.update_one(
+        {"_id": ObjectId(user_id)}, {"$set": {"username": new_username}}
+    )
+
+
+def update_password(user_id, new_password):
+    """
+    Update a user's password.
+    """
+    db = get_db()
+    db.users.update_one(
+        {"_id": ObjectId(user_id)},
+        {"$set": {"password": generate_password_hash(new_password)}},
+    )
+
+
+def delete_user(user_id):
+    """
+    Delete a user account and all their associated data.
+    """
+    db = get_db()
+    db.puzzles.delete_many({"author_id": user_id})
+    db.solutions.delete_many({"author_id": user_id})
+    db.likes.delete_many({"user_id": user_id})
+    db.users.delete_one({"_id": ObjectId(user_id)})
