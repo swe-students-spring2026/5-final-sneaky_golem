@@ -247,6 +247,7 @@ def get_saved_boards(user_id, limit=4):
     )
     return [serialize_board(doc) for doc in docs]
 
+
 def update_username(user_id, new_username):
     """
     Update a user's username in db.
@@ -255,9 +256,9 @@ def update_username(user_id, new_username):
     if db.users.find_one({"username": new_username}):
         raise ValueError(f"Username '{new_username}' is already taken.")
     db.users.update_one(
-        {"_id": ObjectId(user_id)},
-        {"$set": {"username": new_username}}
+        {"_id": ObjectId(user_id)}, {"$set": {"username": new_username}}
     )
+
 
 def update_password(user_id, new_password):
     """
@@ -265,8 +266,9 @@ def update_password(user_id, new_password):
     db = get_db()
     db.users.update_one(
         {"_id": ObjectId(user_id)},
-        {"$set": {"password": generate_password_hash(new_password)}}
+        {"$set": {"password": generate_password_hash(new_password)}},
     )
+
 
 def delete_user(user_id):
     """

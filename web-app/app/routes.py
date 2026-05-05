@@ -291,7 +291,8 @@ def community():
         saved_boards=[],
     )
 
-#---- endpoints for user settings ----
+
+# ---- endpoints for user settings ----
 @main.route("/settings", methods=["GET"])
 @login_required
 def settings():
@@ -299,6 +300,7 @@ def settings():
     GET: User settings.
     """
     return render_template("settings.html", user=current_user)
+
 
 @main.route("/settings/change-username", methods=["POST"])
 @login_required
@@ -321,6 +323,7 @@ def change_username():
         flash(f"Database error: {exc}", "error")
 
     return redirect(url_for("main.settings"))
+
 
 @main.route("/settings/change-password", methods=["POST"])
 @login_required
