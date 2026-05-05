@@ -291,6 +291,24 @@ def get_saved_boards(user_id, limit=4):
     return [serialize_board(doc) for doc in docs]
 
 
+def serialize_solution(doc, include_steps=False):
+    """
+    Convert a solution document to a dict with serializable fields.
+    Set include_steps=True for the active solution, False for the list view.
+    """
+    result = {
+        "solution_id": str(doc["_id"]),
+        "solution_name": doc.get("solution_name"),
+        "author_username": doc.get("author_username"),
+        "like_count": doc.get("like_count", 0),
+        "created_at": str(doc.get("created_at", "")),
+        "final_board": doc.get("final_board"),
+    }
+    if include_steps:
+        result["steps"] = doc.get("steps", [])
+    return result
+
+
 def update_username(user_id, new_username):
     """
     Update a user's username in db.
@@ -305,7 +323,8 @@ def update_username(user_id, new_username):
 
 def update_password(user_id, new_password):
     """
-    Update a user's password."""
+    Update a user's password.
+    """
     db = get_db()
     db.users.update_one(
         {"_id": ObjectId(user_id)},
@@ -315,7 +334,8 @@ def update_password(user_id, new_password):
 
 def delete_user(user_id):
     """
-    Delete a user account and all their associated data."""
+    Delete a user account and all their associated data.
+    """
     db = get_db()
     db.puzzles.delete_many({"author_id": user_id})
     db.solutions.delete_many({"author_id": user_id})

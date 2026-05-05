@@ -27,6 +27,7 @@ from app.services import (
     get_user_by_username,
     create_user,
     authenticate_user,
+    serialize_solution,
     temp_puzzle,
     get_puzzles,
     get_puzzle_by_id,
@@ -141,15 +142,21 @@ def view_board(puzzle_id):
     for s in puzzle.get("solutions_json", []):
         solutions_list.append({k: v for k, v in s.items() if k != "steps"})
 
+    raw_solutions = puzzle.get("solutions_json", [])
+    solutions_list = [serialize_solution(s) for s in raw_solutions]
+    active_solution = (
+        serialize_solution(raw_solutions[0], include_steps=True)
+        if raw_solutions
+        else None
+    )
+
     return render_template(
         "saved_board.html",
         user=current_user,
         puzzle=serialize_board(puzzle),
         board_json=json.dumps(puzzle.get("board_json")),
         solutions_json=json.dumps(solutions_list, default=str),
-        active_solution_json=json.dumps(
-            puzzle.get("active_solution_json"), default=str
-        ),
+        active_solution_json=json.dumps(active_solution, default=str),
     )
 
 
