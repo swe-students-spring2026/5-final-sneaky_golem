@@ -36,7 +36,7 @@ function restart() {
     oldb2b = b2b;
 	b2b = -1;
 	log = [];
-	log.push(boardStart);
+	log.push(structuredClone(boardStart));
 	newPiece()
 }
 
@@ -150,7 +150,7 @@ function setBoard(setter, setter2){
 	updateGhost();
 	setShape();
 	updateHistory();
-	log.push(boardStart);
+	log.push(structuredClone(boardStart))
 	
 }
 
