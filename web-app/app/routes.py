@@ -603,4 +603,3 @@ def delete_account():
     except PyMongoError as exc:
         flash(f"Database error: {exc}", "error")
         return redirect(url_for("main.settings"))
-    
