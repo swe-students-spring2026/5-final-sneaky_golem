@@ -126,7 +126,7 @@ def community_puzzle(puzzle_id):
     puzzle = get_puzzle_by_id(puzzle_id)
     if puzzle is None:
         return "Board not found", 404
-    
+
     solutions = puzzle.get("solutions_json", [])
     solutions_list = []
     for s in solutions:
@@ -271,11 +271,16 @@ def boards():
         page_range=build_page_range(page, total_pages),
     )
 
-# TODO
+# to be finished
 @main.route("/community", methods=["GET"])
 @login_required
 def community():
     """
     GET: Community boards list.
     """
-    return render_template("dashboard.html", user=current_user, community_boards=get_puzzles(), saved_boards=[])
+    return render_template(
+        "dashboard.html",
+        user=current_user,
+        community_boards=get_puzzles(),
+        saved_boards=[],
+    )

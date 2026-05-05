@@ -15,6 +15,7 @@ from flask_login import UserMixin  # , current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from pymongo import MongoClient
 from pymongo.errors import PyMongoError
+from bson.errors import InvalidId
 
 
 class User(UserMixin):
@@ -185,7 +186,9 @@ def serialize_board(doc):
     }
 
 
-def get_user_boards(user_id, sort="newest", search="", public_only=False, page=1, per_page=10):
+BOARDS_PER_PAGE = 10
+
+def get_user_boards(user_id, sort="newest", search="", public_only=False, page=1):
     """
     Get a paginated list of boards for a specific user.
     Supports sorting by date or likes, filtering by public status, and searching by name.
@@ -205,8 +208,8 @@ def get_user_boards(user_id, sort="newest", search="", public_only=False, page=1
     }.get(sort, [("created_at", -1)])
 
     total = db.puzzles.count_documents(query)
-    skip = (page - 1) * per_page
-    docs = db.puzzles.find(query).sort(sort_field).skip(skip).limit(per_page)
+    skip = (page - 1) * BOARDS_PER_PAGE
+    docs = db.puzzles.find(query).sort(sort_field).skip(skip).limit(BOARDS_PER_PAGE)
     return [serialize_board(doc) for doc in docs], total
 
 def get_community_boards(limit=6):
@@ -219,9 +222,10 @@ def get_community_boards(limit=6):
     for doc in docs:
         board = serialize_board(doc)
         try:
-            user = db.users.find_one({"_id": ObjectId(doc["author_id"])}) if doc.get("author_id") else None
+            author_id = doc.get("author_id")
+            user = db.users.find_one({"_id": ObjectId(author_id)}) if author_id else None
             board["author_username"] = user["username"] if user else "unknown"
-        except Exception:
+        except InvalidId:
             board["author_username"] = "unknown"
         boards.append(board)
     return boards
