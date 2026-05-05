@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Tetris{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    {% block head %}{% endblock %}
+</head>
+<body>
+    {% block nav %}
+    <nav class="nav">
+        <span class="nav-logo">TETRIS</span></span>
+        <div class="nav-links">
+            <a href="/dashboard" class="nav-link">Dashboard</a>
+            <a href="/settings" class="nav-link">Settings</a>
+            <a href="/logout" class="nav-link">Logout</a>
+        </div>
+    </nav>
+    {% endblock %}
+
+    <main class="main">
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>
