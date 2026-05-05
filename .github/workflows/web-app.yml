@@ -9,6 +9,7 @@ on:
     branches: [main, master]
     paths:
       - "web-app/**"
+  workflow_dispatch:
 
 env:
   PYTHON_VERSION: "3.10"
