@@ -549,7 +549,7 @@ def import_board_confirm():
         )
     except PyMongoError as exc:
         return jsonify({"error": f"Database error: {exc}"}), 500
-    
+
 
 @main.route("/solution/<solution_id>", methods=["GET"])
 @login_required
@@ -559,10 +559,19 @@ def get_solution(solution_id):
     """
     return json.dumps(get_solution_by_id(solution_id), default=str)
 
-@main.route('/board/solution/<puzzle_id>')
+
+@main.route("/board/solution/<puzzle_id>")
 @login_required
 def puzzle_edit_solution(puzzle_id):
-    return render_template("zztetris/index.html", user=current_user, puzzle=get_puzzle_by_id(puzzle_id), id=puzzle_id)
+    """
+    Edit the solution of a puzzle.
+    """
+    return render_template(
+        "zztetris/index.html",
+        user=current_user,
+        puzzle=get_puzzle_by_id(puzzle_id),
+        id=puzzle_id,
+    )
 
 
 # ---- endpoints for user settings ----

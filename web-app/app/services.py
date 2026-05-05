@@ -44,14 +44,19 @@ class Puzzle:
         self.is_public = (puzzle_doc["is_public"],)
         self.like_count = puzzle_doc["like_count"]
 
-class Solution():
+
+class Solution:
+    """
+    Class for puzzle solutions.
+    """
+
     def __init__(self, solution_doc):
-        self.puzzle_id = str(solution_doc["puzzle_id"]),
-        self.solution_name = solution_doc["solution_name"],
-        self.author_username = solution_doc["author_username"],
-        self.like_count = solution_doc["like_count"],
-        self.created_at = solution_doc["created_at"],
-        self.final_board = solution_doc["final_board"],
+        self.puzzle_id = str(solution_doc["puzzle_id"])
+        self.solution_name = solution_doc["solution_name"]
+        self.author_username = solution_doc["author_username"]
+        self.like_count = solution_doc["like_count"]
+        self.created_at = solution_doc["created_at"]
+        self.final_board = solution_doc["final_board"]
         self.steps = solution_doc["steps"]
 
 
@@ -203,21 +208,27 @@ def update_puzzle(puzzle_id, name, matrix, queue):
         },
     )
 
-def update_puzzle_solution(id, data, username):
+
+def update_puzzle_solution(puzzle_id, data, username):
+    """
+    Update the solution of a puzzle.
+    """
     db = get_db()
     doc = {
-        "puzzle_id": ObjectId(id),
+        "puzzle_id": ObjectId(puzzle_id),
         "solution_name": data["name"],
         "author_username": username,
         "like_count": 0,
         "created_at": datetime.now(),
         "final_board": data["steps"][len(data) - 1],
-        "steps": data["steps"]
+        "steps": data["steps"],
     }
     result = db.solutions.insert_one(doc)
     doc["_id"] = result.inserted_id
     Solution(doc)
-    db.puzzles.update_one({"_id": ObjectId(id)}, {"$push": {"solutions_json": doc}})
+    db.puzzles.update_one(
+        {"_id": ObjectId(puzzle_id)}, {"$push": {"solutions_json": doc}}
+    )
 
 
 def rename_puzzle(puzzle_id, name):
@@ -372,9 +383,13 @@ def get_saved_boards(user_id, limit=4):
     )
     return [serialize_board(doc) for doc in docs]
 
-def get_solution_by_id(id):
+
+def get_solution_by_id(solution_id):
+    """
+    Get a solution by its id.
+    """
     db = get_db()
-    return db.solutions.find_one({'_id': ObjectId(id)})
+    return db.solutions.find_one({"_id": ObjectId(solution_id)})
 
 
 def serialize_solution(doc, include_steps=False):
