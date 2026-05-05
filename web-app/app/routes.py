@@ -32,6 +32,8 @@ from app.services import (
     get_puzzle_by_id,
     save_puzzle,
     get_user_boards,
+    get_community_boards,
+    get_saved_boards,
 )
 
 main = Blueprint("main", __name__)
@@ -105,12 +107,14 @@ def logout():
 def dashboard():
     """
     Displays the user's dashboard.
-
-    Check if this is aligned with Tim's templates.
     """
     return render_template(
-        "dashboard.html", user=current_user, community_boards=get_puzzles()
+        "dashboard.html",
+        user=current_user,
+        saved_boards=get_saved_boards(current_user.id),
+        community_boards=get_community_boards(),
     )
+
 
 
 @main.route("/community/board/<puzzle_id>")
@@ -275,4 +279,3 @@ def community():
     GET: Community boards list.
     """
     return render_template("dashboard.html", user=current_user, community_boards=get_puzzles(), saved_boards=[])
-

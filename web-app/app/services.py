@@ -172,6 +172,19 @@ def save_puzzle(author_id, puzzle_name, board, is_public=True):
     doc["_id"] = result.inserted_id
     return Puzzle(doc)
 
+def serialize_board(doc):
+    """
+    Convert a raw MongoDB puzzle document to a dict with serializable fields.
+    """
+    return {
+        "puzzle_id": str(doc["_id"]),
+        "puzzle_name": doc.get("puzzle_name"),
+        "is_public": doc.get("is_public", False),
+        "created_at": str(doc.get("created_at", "")),
+        "like_count": doc.get("like_count", 0),
+    }
+
+
 def get_user_boards(user_id, sort="newest", search="", public_only=False, page=1, per_page=10):
     """
     Get a paginated list of boards for a specific user.
@@ -193,5 +206,31 @@ def get_user_boards(user_id, sort="newest", search="", public_only=False, page=1
 
     total = db.puzzles.count_documents(query)
     skip = (page - 1) * per_page
-    docs = list(db.puzzles.find(query).sort(sort_field).skip(skip).limit(per_page))
-    return docs, total
+    docs = db.puzzles.find(query).sort(sort_field).skip(skip).limit(per_page)
+    return [serialize_board(doc) for doc in docs], total
+
+def get_community_boards(limit=6):
+    """
+    Get recent public boards with author username resolved from the users collection.
+    """
+    db = get_db()
+    docs = db.puzzles.find({"is_public": True}).sort([("created_at", -1)]).limit(limit)
+    boards = []
+    for doc in docs:
+        board = serialize_board(doc)
+        try:
+            user = db.users.find_one({"_id": ObjectId(doc["author_id"])}) if doc.get("author_id") else None
+            board["author_username"] = user["username"] if user else "unknown"
+        except Exception:
+            board["author_username"] = "unknown"
+        boards.append(board)
+    return boards
+
+
+def get_saved_boards(user_id, limit=4):
+    """
+    Get a small preview of the user's most recent boards for the dashboard.
+    """
+    db = get_db()
+    docs = db.puzzles.find({"author_id": user_id}).sort([("created_at", -1)]).limit(limit)
+    return [serialize_board(doc) for doc in docs]
