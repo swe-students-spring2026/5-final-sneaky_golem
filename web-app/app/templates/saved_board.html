@@ -54,6 +54,9 @@
     </div>
 
     <div class="board-solutions">
+        <form action="{{ url_for('main.puzzle_edit_solution', puzzle_id=puzzle.puzzle_id) }}">
+                <button id="btn-solve" class="btn" style="width:100%;">START SOLVE</button>
+            </form>
         <label class="sidebar-label">SOLUTIONS</label>
 
         <div class="sort-btns">
