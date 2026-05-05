@@ -39,6 +39,8 @@ from app.services import (
     get_user_boards,
     get_community_boards,
     get_saved_boards,
+    get_solution_by_id,
+    share_puzzle,
     BOARDS_PER_PAGE,
     update_username,
     update_password,
@@ -152,10 +154,6 @@ def view_board(puzzle_id):
     puzzle = get_puzzle_by_id(puzzle_id)
     if puzzle is None:
         return "Board not found", 404
-
-    solutions_list = []
-    for s in puzzle.get("solutions_json", []):
-        solutions_list.append({k: v for k, v in s.items() if k != "steps"})
 
     raw_solutions = puzzle.get("solutions_json", [])
     solutions_list = [serialize_solution(s) for s in raw_solutions]
@@ -398,6 +396,59 @@ def import_board():
     GET: Render the import page.
     """
     return render_template("import.html")
+
+@main.route("/solution/<solution_id>", methods=["GET"])
+@login_required
+def get_solution(solution_id):
+    """
+    GET: Return a single solution (with steps) as JSON.
+    Called by saved_board.js when the user clicks a solution in the list.
+    """
+    solution = get_solution_by_id(solution_id)
+    if solution is None:
+        return jsonify({"error": "Solution not found."}), 404
+    return jsonify(serialize_solution(solution, include_steps=True)), 200
+
+
+@main.route("/community/board/<puzzle_id>", methods=["GET"])
+@login_required
+def community_board(puzzle_id):
+    """
+    GET: View a community puzzle board (same display as saved_board).
+    """
+    puzzle = get_puzzle_by_id(puzzle_id)
+    if puzzle is None:
+        return "Board not found", 404
+
+    raw_solutions = puzzle.get("solutions_json", [])
+    solutions_list = [serialize_solution(s) for s in raw_solutions]
+    active_solution = (
+        serialize_solution(raw_solutions[0], include_steps=True)
+        if raw_solutions
+        else None
+    )
+
+    return render_template(
+        "saved_board.html",
+        user=current_user,
+        puzzle=serialize_board(puzzle),
+        board_json=json.dumps(puzzle.get("board_json")),
+        solutions_json=json.dumps(solutions_list, default=str),
+        active_solution_json=json.dumps(active_solution, default=str),
+    )
+
+
+@main.route("/board/<puzzle_id>/share", methods=["GET"])
+@login_required
+def share_board(puzzle_id):
+    """
+    GET: Make a puzzle public (share with community), then redirect to its view page.
+    """
+    try:
+        share_puzzle(puzzle_id)
+    except PyMongoError as exc:
+        flash(f"Database error: {exc}", "error")
+    return redirect(url_for("main.view_board", puzzle_id=puzzle_id))
 
 
 @main.route("/import", methods=["POST"])

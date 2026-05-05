@@ -155,6 +155,58 @@ def get_puzzle_by_id(puzzle_id):
     return db.puzzles.find_one({"_id": ObjectId(puzzle_id)})
 
 
+def get_solution_by_id(solution_id):
+    """
+    Get a solution from the solutions collection by its id.
+    """
+    try:
+        db = get_db()
+        return db.solutions.find_one({"_id": ObjectId(solution_id)})
+    except InvalidId:
+        return None
+
+
+def share_puzzle(puzzle_id):
+    """
+    Make a puzzle public so it appears in the community feed.
+    """
+    db = get_db()
+    db.puzzles.update_one(
+        {"_id": ObjectId(puzzle_id)},
+        {"$set": {"is_public": True, "updated_at": datetime.now(timezone.utc)}},
+    )
+
+
+def update_puzzle(puzzle_id, name, matrix, queue):
+    """
+    Update a puzzle's name, board matrix, and queue.
+    """
+    db = get_db()
+    db.puzzles.update_one(
+        {"_id": ObjectId(puzzle_id)},
+        {"$set": {"puzzle_name": name, "board_json": matrix, "queue_json": queue}},
+    )
+
+
+def rename_puzzle(puzzle_id, name):
+    """
+    Rename a puzzle.
+    """
+    db = get_db()
+    db.puzzles.update_one(
+        {"_id": ObjectId(puzzle_id)}, {"$set": {"puzzle_name": name}}
+    )
+
+
+def delete_puzzle(puzzle_id):
+    """
+    Delete a puzzle and its associated solutions.
+    """
+    db = get_db()
+    db.solutions.delete_many({"puzzle_id": ObjectId(puzzle_id)})
+    db.puzzles.delete_one({"_id": ObjectId(puzzle_id)})
+
+
 def save_puzzle(author_id, puzzle_name, board, queue=None, is_public=True):
     """
     Persist a board matrix as a new puzzle document.
