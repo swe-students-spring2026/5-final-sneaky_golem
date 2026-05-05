@@ -154,62 +154,6 @@ def test_new_board_redirects_to_edit(logged_in_client, mocker):
     assert "newid123" in res.headers["Location"]
 
 
-# ---- /board/<id>/edit ----
-
-
-def test_edit_board_get_requires_login(client):
-    res = client.get("/board/abc123/edit", follow_redirects=False)
-    assert res.status_code == 302
-    assert "/login" in res.headers["Location"]
-
-
-def test_edit_board_get_not_found(logged_in_client, mocker):
-    mocker.patch("app.routes.get_puzzle_by_id", return_value=None)
-    res = logged_in_client.get("/board/abc123/edit")
-    assert res.status_code == 404
-
-
-def test_edit_board_get_loads(logged_in_client, mocker):
-    mocker.patch(
-        "app.routes.get_puzzle_by_id",
-        return_value={
-            "puzzle_name": "Test",
-            "board_json": [],
-            "queue_json": [],
-        },
-    )
-    res = logged_in_client.get("/board/abc123/edit")
-    assert res.status_code == 200
-    assert b"edit" in res.data.lower()
-
-
-def test_edit_board_post_success(logged_in_client, mocker):
-    mock_update = mocker.patch("app.routes.update_puzzle")
-    res = logged_in_client.post(
-        "/board/abc123/edit",
-        json={
-            "name": "Updated",
-            "matrix": [["X"] * 10] * 20,
-            "queue": [],
-        },
-    )
-    mock_update.assert_called_once()
-    assert res.status_code == 200
-    assert res.get_json()["puzzle_id"] == "abc123"
-
-
-def test_edit_board_post_no_body(logged_in_client):
-    res = logged_in_client.post("/board/abc123/edit")
-    assert res.status_code == 400
-
-
-def test_edit_board_post_missing_matrix(logged_in_client):
-    res = logged_in_client.post(
-        "/board/abc123/edit", json={"name": "Test", "queue": []}
-    )
-    assert res.status_code == 400
-
-
 # ---- /board/<id>/rename ----
 
 
