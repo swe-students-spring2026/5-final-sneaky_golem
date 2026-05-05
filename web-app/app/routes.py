@@ -3,6 +3,10 @@ Defines all HTTP API endpoints for the web application:
 The main interface between the frontend and backend services.
 """
 
+import base64
+import json
+import os
+
 from flask import (
     Blueprint,
     request,
