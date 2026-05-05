@@ -252,6 +252,46 @@
             });
     }
 
+    function toggleShare() {
+        const btn = document.getElementById('share-btn');
+        if (!btn) return;
+
+        const currentlyPublic = btn.dataset.public === 'true';
+        const makePublic = !currentlyPublic;
+
+        const confirmMsg = makePublic
+            ? 'Share this board with the community?'
+            : 'Remove this board from the community?';
+        if (!confirm(confirmMsg)) return;
+
+        btn.disabled = true;
+        btn.textContent = 'SAVING\u2026';
+
+        fetch(`/board/${puzzleId}/set-public`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ is_public: makePublic }),
+        })
+            .then(function (res) {
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                return res.json();
+            })
+            .then(function (data) {
+                const isNowPublic = data.is_public;
+                btn.dataset.public = String(isNowPublic);
+                btn.textContent = isNowPublic ? 'UNSHARE' : 'SHARE WITH COMMUNITY';
+                btn.disabled = false;
+            })
+            .catch(function (err) {
+                console.error('[saved_board] Share toggle failed:', err);
+                btn.textContent = 'ERROR';
+                setTimeout(function () {
+                    btn.textContent = currentlyPublic ? 'UNSHARE' : 'SHARE WITH COMMUNITY';
+                    btn.disabled = false;
+                }, 2000);
+            });
+    }
+
     function deleteBoard() {
         if (!confirm('Delete this board? This cannot be undone.')) return;
 
@@ -280,6 +320,30 @@
             });
     }
 
+    function toggleLike() {
+        const btn = document.getElementById('like-btn');
+        btn.disabled = true;
+
+        fetch(`/board/${puzzleId}/like`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+        })
+            .then(function (res) {
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                return res.json();
+            })
+            .then(function (data) {
+                btn.dataset.liked = String(data.liked);
+                btn.textContent = `\u2665 ${data.liked ? 'LIKED' : 'LIKE'} \u00b7 ${data.like_count}`;
+                btn.classList.toggle('btn-liked', data.liked);
+                btn.disabled = false;
+            })
+            .catch(function (err) {
+                console.error('[saved_board] Like toggle failed:', err);
+                btn.disabled = false;
+            });
+    }
+
     function bindEvents() {
         document.getElementById('btn-first').addEventListener('click', goFirst);
         document.getElementById('btn-prev').addEventListener('click', goPrev);
@@ -292,12 +356,20 @@
         document.getElementById('page-prev').addEventListener('click', function () { setPage(currentPage - 1); });
         document.getElementById('page-next').addEventListener('click', function () { setPage(currentPage + 1); });
 
-        document.getElementById('rename-btn').addEventListener('click', renameBoard);
-        document.getElementById('board-name-input').addEventListener('keydown', function (e) {
+        // Owner-only controls — elements absent for non-owners
+        var renameBtn = document.getElementById('rename-btn');
+        var nameInput = document.getElementById('board-name-input');
+        var shareBtn  = document.getElementById('share-btn');
+        var deleteBtn = document.getElementById('delete-btn');
+
+        if (renameBtn) renameBtn.addEventListener('click', renameBoard);
+        if (nameInput) nameInput.addEventListener('keydown', function (e) {
             if (e.key === 'Enter') renameBoard();
         });
+        if (shareBtn)  shareBtn.addEventListener('click', toggleShare);
+        if (deleteBtn) deleteBtn.addEventListener('click', deleteBoard);
 
-        document.getElementById('delete-btn').addEventListener('click', deleteBoard);
+        document.getElementById('like-btn').addEventListener('click', toggleLike);
     }
 
     function init() {

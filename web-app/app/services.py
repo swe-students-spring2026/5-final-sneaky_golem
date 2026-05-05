@@ -165,7 +165,7 @@ def get_puzzle_by_id(puzzle_id):
     return db.puzzles.find_one({"_id": ObjectId(puzzle_id)})
 
 
-def save_puzzle(author_id, puzzle_name, board, queue=None, is_public=True):
+def save_puzzle(author_id, puzzle_name, board, queue=None, is_public=False):
     """
     Persist a board matrix as a new puzzle document.
     """
@@ -244,6 +244,22 @@ def delete_puzzle(puzzle_id):
     db.puzzles.delete_one({"_id": ObjectId(puzzle_id)})
 
 
+def set_puzzle_public(puzzle_id, is_public):
+    """
+    Set the is_public flag on a puzzle.
+    """
+    db = get_db()
+    db.puzzles.update_one(
+        {"_id": ObjectId(puzzle_id)},
+        {
+            "$set": {
+                "is_public": is_public,
+                "updated_at": datetime.now(timezone.utc),
+            }
+        },
+    )
+
+
 def serialize_board(doc):
     """
     Convert a raw MongoDB puzzle document to a dict with serializable fields.
@@ -252,7 +268,11 @@ def serialize_board(doc):
         "puzzle_id": str(doc["_id"]),
         "puzzle_name": doc.get("puzzle_name"),
         "is_public": doc.get("is_public", False),
-        "created_at": str(doc.get("created_at", "")),
+        "created_at": (
+            doc["created_at"].strftime("%Y-%m-%d %H:%M")
+            if hasattr(doc.get("created_at"), "strftime")
+            else str(doc.get("created_at", ""))
+        ),
         "like_count": doc.get("like_count", 0),
     }
 
@@ -306,6 +326,42 @@ def get_community_boards(limit=6):
     return boards
 
 
+def get_all_community_boards(sort="newest", search="", page=1):
+    """
+    Get a paginated list of all public boards across all users.
+    Supports sorting by date or likes and searching by name.
+    Resolves author username for each board.
+    """
+    db = get_db()
+    query = {"is_public": True}
+    if search:
+        query["puzzle_name"] = {"$regex": search, "$options": "i"}
+
+    sort_field = {
+        "newest": [("created_at", -1)],
+        "oldest": [("created_at", 1)],
+        "likes": [("like_count", -1)],
+    }.get(sort, [("created_at", -1)])
+
+    total = db.puzzles.count_documents(query)
+    skip = (page - 1) * BOARDS_PER_PAGE
+    docs = db.puzzles.find(query).sort(sort_field).skip(skip).limit(BOARDS_PER_PAGE)
+
+    boards = []
+    for doc in docs:
+        board = serialize_board(doc)
+        try:
+            author_id = doc.get("author_id")
+            user = (
+                db.users.find_one({"_id": ObjectId(author_id)}) if author_id else None
+            )
+            board["author_username"] = user["username"] if user else "unknown"
+        except InvalidId:
+            board["author_username"] = "unknown"
+        boards.append(board)
+    return boards, total
+
+
 def get_saved_boards(user_id, limit=4):
     """
     Get a small preview of the user's most recent boards for the dashboard.
@@ -331,7 +387,11 @@ def serialize_solution(doc, include_steps=False):
         "solution_name": doc.get("solution_name"),
         "author_username": doc.get("author_username"),
         "like_count": doc.get("like_count", 0),
-        "created_at": str(doc.get("created_at", "")),
+        "created_at": (
+            doc["created_at"].strftime("%Y-%m-%d %H:%M")
+            if hasattr(doc.get("created_at"), "strftime")
+            else str(doc.get("created_at", ""))
+        ),
         "final_board": doc.get("final_board"),
     }
     if include_steps:
@@ -371,3 +431,36 @@ def delete_user(user_id):
     db.solutions.delete_many({"author_id": user_id})
     db.likes.delete_many({"user_id": user_id})
     db.users.delete_one({"_id": ObjectId(user_id)})
+
+
+def has_liked(user_id, puzzle_id):
+    """
+    Return True if the user has already liked this puzzle.
+    """
+    db = get_db()
+    return db.likes.find_one({"user_id": user_id, "puzzle_id": puzzle_id}) is not None
+
+
+def like_puzzle(user_id, puzzle_id):
+    """
+    Record a like and increment the puzzle's like_count.
+    Does nothing if the user has already liked it.
+    """
+    db = get_db()
+    if db.likes.find_one({"user_id": user_id, "puzzle_id": puzzle_id}):
+        return
+    db.likes.insert_one({"user_id": user_id, "puzzle_id": puzzle_id})
+    db.puzzles.update_one({"_id": ObjectId(puzzle_id)}, {"$inc": {"like_count": 1}})
+
+
+def unlike_puzzle(user_id, puzzle_id):
+    """
+    Remove a like and decrement the puzzle's like_count.
+    Does nothing if the user has not liked it.
+    """
+    db = get_db()
+    result = db.likes.delete_one({"user_id": user_id, "puzzle_id": puzzle_id})
+    if result.deleted_count:
+        db.puzzles.update_one(
+            {"_id": ObjectId(puzzle_id)}, {"$inc": {"like_count": -1}}
+        )

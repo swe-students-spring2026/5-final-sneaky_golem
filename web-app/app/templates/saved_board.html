@@ -8,8 +8,12 @@
 <script id="data-board"           type="application/json">{{ board_json | safe }}</script>
 <script id="data-solutions"       type="application/json">{{ solutions_json | safe }}</script>
 <script id="data-active-solution" type="application/json">{{ active_solution_json | safe }}</script>
+<script id="data-is-owner"        type="application/json">{{ is_owner | tojson }}</script>
+<script id="data-is-public"       type="application/json">{{ puzzle.is_public | tojson }}</script>
+<script id="data-has-liked"       type="application/json">{{ user_has_liked | tojson }}</script>
 
-<div class="board-layout">
+<div class="board-layout{% if not is_owner %} board-layout-no-sidebar{% endif %}">
+    {% if is_owner %}
     <div class="board-sidebar">
         <div class="sidebar-section">
             <input id="board-name-input" class="board-input" type="text"
@@ -17,17 +21,18 @@
             <button id="rename-btn" class="btn" style="width:100%; margin-top:6px;">RENAME</button>
             <a href="/board/{{ puzzle.puzzle_id }}/edit"
                 class="btn" style="display:block; text-align:center; margin-top:6px;">OPEN EDITOR</a>
-            <form action="{{ url_for('main.puzzle_edit_solution', puzzle_id=puzzle.puzzle_id) }}">
-                <button id="btn-solve" class="btn" style="width:100%;">START SOLVE</button>
-            </form>
-            <a href="/board/{{ puzzle.puzzle_id }}/share"
-                class="btn" style="display:block; text-align:center; margin-top:6px;">SHARE WITH COMMUNITY</a>
+            <button id="share-btn" class="btn"
+                    data-public="{{ puzzle.is_public | tojson }}"
+                    style="width:100%; margin-top:6px;">
+                {% if puzzle.is_public %}UNSHARE{% else %}SHARE WITH COMMUNITY{% endif %}
+            </button>
         </div>
 
         <div class="sidebar-section" style="margin-top:40px;">
             <button id="delete-btn" class="btn" style="width:100%;">DELETE BOARD</button>
         </div>
     </div>
+    {% endif %}
 
     <div class="board-center">
         <div id="tetris-board" class="tetris-board">
@@ -40,6 +45,12 @@
             <button id="btn-next"  class="btn ctrl-btn">NEXT &#9654;</button>
             <button id="btn-last"  class="btn ctrl-btn">LAST &#9654;&#9654;</button>
         </div>
+
+        <button id="like-btn"
+                class="btn{% if user_has_liked %} btn-liked{% endif %}"
+                data-liked="{{ user_has_liked | tojson }}">
+            &#9829; {% if user_has_liked %}LIKED · {{ puzzle.like_count }}{% else %}LIKE · {{ puzzle.like_count }}{% endif %}
+        </button>
     </div>
 
     <div class="board-solutions">

@@ -1,12 +1,12 @@
 {% extends "template.html" %}
 
-{% block title %}My Boards{% endblock %}
+{% block title %}{{ page_title }}{% endblock %}
 
 {% block content %}
-<h1 class="page-title">My Boards</h1>
+<h1 class="page-title">{{ page_title }}</h1>
 
 <div class="boards-controls">
-    <form class="boards-search-form" method="get" action="/boards">
+    <form class="boards-search-form" method="get" action="{{ base_url }}">
         <input
             type="hidden" name="sort" value="{{ current_sort }}">
         <input
@@ -25,16 +25,18 @@
 
     <div class="boards-actions">
         <div class="sort-btns">
-            <a href="/boards?sort=newest&page=1&public_only={{ 'true' if public_only else 'false' }}&search={{ search_query }}"
+            <a href="{{ base_url }}?sort=newest&page=1&public_only={{ 'true' if public_only else 'false' }}&search={{ search_query }}"
                class="btn sort-btn {% if current_sort == 'newest' %}sort-active{% endif %}">NEWEST</a>
-            <a href="/boards?sort=oldest&page=1&public_only={{ 'true' if public_only else 'false' }}&search={{ search_query }}"
+            <a href="{{ base_url }}?sort=oldest&page=1&public_only={{ 'true' if public_only else 'false' }}&search={{ search_query }}"
                class="btn sort-btn {% if current_sort == 'oldest' %}sort-active{% endif %}">OLDEST</a>
-            <a href="/boards?sort=likes&page=1&public_only={{ 'true' if public_only else 'false' }}&search={{ search_query }}"
+            <a href="{{ base_url }}?sort=likes&page=1&public_only={{ 'true' if public_only else 'false' }}&search={{ search_query }}"
                class="btn sort-btn {% if current_sort == 'likes' %}sort-active{% endif %}">LIKES</a>
         </div>
 
-        <a href="/boards?sort={{ current_sort }}&page=1&public_only={{ 'false' if public_only else 'true' }}&search={{ search_query }}"
+        {% if show_public_filter %}
+        <a href="{{ base_url }}?sort={{ current_sort }}&page=1&public_only={{ 'false' if public_only else 'true' }}&search={{ search_query }}"
            class="btn boards-public-btn {% if public_only %}sort-active{% endif %}">PUBLIC ONLY</a>
+        {% endif %}
     </div>
 </div>
 
@@ -55,6 +57,9 @@
             </span>
         </div>
         <div class="boards-card-meta">
+            {% if puzzle.author_username is defined %}
+            <span>{{ puzzle.author_username }}</span>
+            {% endif %}
             <span>{{ puzzle.created_at }}</span>
             <span>{{ puzzle.like_count }} LIKE{{ 'S' if puzzle.like_count != 1 else '' }}</span>
         </div>
@@ -70,7 +75,7 @@
 {% if total_pages > 1 %}
 <div class="boards-pagination">
     {% if current_page > 1 %}
-    <a href="/boards?sort={{ current_sort }}&page={{ current_page - 1 }}&public_only={{ 'true' if public_only else 'false' }}&search={{ search_query }}"
+    <a href="{{ base_url }}?sort={{ current_sort }}&page={{ current_page - 1 }}&public_only={{ 'true' if public_only else 'false' }}&search={{ search_query }}"
        class="btn ctrl-btn">&#9664; PREV</a>
     {% else %}
     <span class="btn ctrl-btn disabled">&#9664; PREV</span>
@@ -83,14 +88,14 @@
         {% elif p == current_page %}
         <span class="btn sort-btn sort-active boards-page-num">{{ p }}</span>
         {% else %}
-        <a href="/boards?sort={{ current_sort }}&page={{ p }}&public_only={{ 'true' if public_only else 'false' }}&search={{ search_query }}"
+        <a href="{{ base_url }}?sort={{ current_sort }}&page={{ p }}&public_only={{ 'true' if public_only else 'false' }}&search={{ search_query }}"
            class="btn sort-btn boards-page-num">{{ p }}</a>
         {% endif %}
         {% endfor %}
     </div>
 
     {% if current_page < total_pages %}
-    <a href="/boards?sort={{ current_sort }}&page={{ current_page + 1 }}&public_only={{ 'true' if public_only else 'false' }}&search={{ search_query }}"
+    <a href="{{ base_url }}?sort={{ current_sort }}&page={{ current_page + 1 }}&public_only={{ 'true' if public_only else 'false' }}&search={{ search_query }}"
        class="btn ctrl-btn">NEXT &#9654;</a>
     {% else %}
     <span class="btn ctrl-btn disabled">NEXT &#9654;</span>

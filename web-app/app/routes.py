@@ -29,7 +29,6 @@ from app.services import (
     authenticate_user,
     serialize_solution,
     temp_puzzle,
-    get_puzzles,
     get_puzzle_by_id,
     save_puzzle,
     update_puzzle,
@@ -38,6 +37,7 @@ from app.services import (
     serialize_board,
     get_user_boards,
     get_community_boards,
+    get_all_community_boards,
     get_saved_boards,
     BOARDS_PER_PAGE,
     update_username,
@@ -45,6 +45,10 @@ from app.services import (
     delete_user,
     update_puzzle_solution,
     get_solution_by_id
+    set_puzzle_public,
+    has_liked,
+    like_puzzle,
+    unlike_puzzle,
 )
 
 main = Blueprint("main", __name__)
@@ -155,6 +159,9 @@ def view_board(puzzle_id):
         else None
     )
 
+    is_owner = str(puzzle.get("author_id")) == current_user.id
+    user_has_liked = has_liked(current_user.id, puzzle_id)
+
     return render_template(
         "saved_board.html",
         user=current_user,
@@ -162,6 +169,8 @@ def view_board(puzzle_id):
         board_json=json.dumps(puzzle.get("board_json")),
         solutions_json=json.dumps(solutions_list, default=str),
         active_solution_json=json.dumps(active_solution, default=str),
+        is_owner=is_owner,
+        user_has_liked=user_has_liked,
     )
 
 
@@ -266,11 +275,11 @@ def build_page_range(current_page, total_pages):
     return pages
 
 
-@main.route("/boards", methods=["GET"])
+@main.route("/boards-me", methods=["GET"])
 @login_required
-def boards():
+def boards_me():
     """
-    GET: Render the user's saved boards with search, sort, and pagination.
+    GET: Render the current user's saved boards with search, sort, and pagination.
     """
     sort = request.args.get("sort", "newest")
     page = int(request.args.get("page", 1))
@@ -284,6 +293,9 @@ def boards():
 
     return render_template(
         "boards.html",
+        page_title="My Boards",
+        base_url="/boards-me",
+        show_public_filter=True,
         boards=board_list,
         current_sort=sort,
         public_only=public_only,
@@ -295,19 +307,32 @@ def boards():
     )
 
 
-# to be finished
-@main.route("/community", methods=["GET"])
+@main.route("/boards-community", methods=["GET"])
 @login_required
-def community():
+def boards_community():
     """
-    GET: Community boards list.
+    GET: Render all public boards from all users, with search, sort, and pagination.
     """
-    print(get_puzzles())
+    sort = request.args.get("sort", "newest")
+    page = int(request.args.get("page", 1))
+    search = request.args.get("search", "")
+
+    board_list, total = get_all_community_boards(sort=sort, search=search, page=page)
+    total_pages = max(1, (total + BOARDS_PER_PAGE - 1) // BOARDS_PER_PAGE)
+
     return render_template(
-        "dashboard.html",
-        user=current_user,
-        community_boards=get_puzzles(),
-        saved_boards=[],
+        "boards.html",
+        page_title="Community Boards",
+        base_url="/boards-community",
+        show_public_filter=False,
+        boards=board_list,
+        current_sort=sort,
+        public_only=True,
+        search_query=search,
+        total_boards=total,
+        total_pages=total_pages,
+        current_page=page,
+        page_range=build_page_range(page, total_pages),
     )
 
 
@@ -326,6 +351,26 @@ def new_board():
     return redirect(url_for("main.edit_board", puzzle_id=str(puzzle.puzzle_id[0])))
 
 
+def _edit_board_post(puzzle_id):
+    """Handle the POST branch of edit_board (extracted to limit return statements)."""
+    body = request.get_json(silent=True)
+    if not body:
+        return jsonify({"error": "JSON body required."}), 400
+
+    name = body.get("name", "").strip() or "UNTITLED"
+    matrix = body.get("matrix")
+    queue = body.get("queue", [])
+
+    if not matrix or not isinstance(matrix, list):
+        return jsonify({"error": "matrix is required and must be a list."}), 400
+
+    try:
+        update_puzzle(puzzle_id, name, matrix, queue)
+        return jsonify({"puzzle_id": puzzle_id}), 200
+    except PyMongoError as exc:
+        return jsonify({"error": f"Database error: {exc}"}), 500
+
+
 @main.route("/board/<puzzle_id>/edit", methods=["GET", "POST"])
 @login_required
 def edit_board(puzzle_id):
@@ -333,27 +378,14 @@ def edit_board(puzzle_id):
     GET:  Render the board editor pre-loaded with the puzzle's current state.
     POST: Persist the updated board matrix, queue, and name to the database.
     """
-    if request.method == "POST":
-        body = request.get_json(silent=True)
-        if not body:
-            return jsonify({"error": "JSON body required."}), 400
-
-        name = body.get("name", "").strip() or "UNTITLED"
-        matrix = body.get("matrix")
-        queue = body.get("queue", [])
-
-        if not matrix or not isinstance(matrix, list):
-            return jsonify({"error": "matrix is required and must be a list."}), 400
-
-        try:
-            update_puzzle(puzzle_id, name, matrix, queue)
-            return jsonify({"puzzle_id": puzzle_id}), 200
-        except PyMongoError as exc:
-            return jsonify({"error": f"Database error: {exc}"}), 500
-
     puzzle = get_puzzle_by_id(puzzle_id)
     if puzzle is None:
         return "Board not found", 404
+    if str(puzzle.get("author_id")) != current_user.id:
+        return "Forbidden", 403
+
+    if request.method == "POST":
+        return _edit_board_post(puzzle_id)
 
     return render_template(
         "edit_board.html",
@@ -368,8 +400,7 @@ def edit_board(puzzle_id):
 @login_required
 def rename_board(puzzle_id):
     """
-    POST: Rename a puzzle.
-    Expects JSON: { "name": str }
+    POST: Rename a puzzle. Expects JSON: { "name": str }
     """
     body = request.get_json(silent=True)
     if not body:
@@ -395,6 +426,52 @@ def delete_board(puzzle_id):
         return jsonify({"redirect": url_for("main.dashboard")}), 200
     except PyMongoError as exc:
         return jsonify({"error": f"Database error: {exc}"}), 500
+
+
+@main.route("/board/<puzzle_id>/set-public", methods=["POST"])
+@login_required
+def set_board_public(puzzle_id):
+    """
+    POST: Set or unset the is_public flag on a puzzle owned by the current user.
+    Expects JSON: { "is_public": bool }
+    """
+    puzzle = get_puzzle_by_id(puzzle_id)
+    if puzzle is None:
+        return jsonify({"error": "Board not found."}), 404
+    if str(puzzle.get("author_id")) != current_user.id:
+        return jsonify({"error": "Forbidden."}), 403
+
+    body = request.get_json(silent=True)
+    if body is None or "is_public" not in body:
+        return jsonify({"error": "JSON body with is_public required."}), 400
+
+    try:
+        set_puzzle_public(puzzle_id, bool(body["is_public"]))
+        return jsonify({"is_public": bool(body["is_public"])}), 200
+    except PyMongoError as exc:
+        return jsonify({"error": f"Database error: {exc}"}), 500
+
+
+@main.route("/board/<puzzle_id>/like", methods=["POST"])
+@login_required
+def toggle_like(puzzle_id):
+    """
+    POST: Toggle the current user's like on a puzzle.
+    Returns: { "liked": bool, "like_count": int }
+    """
+    puzzle = get_puzzle_by_id(puzzle_id)
+    if puzzle is None:
+        return jsonify({"error": "Board not found."}), 404
+
+    if has_liked(current_user.id, puzzle_id):
+        unlike_puzzle(current_user.id, puzzle_id)
+        liked = False
+    else:
+        like_puzzle(current_user.id, puzzle_id)
+        liked = True
+
+    updated = get_puzzle_by_id(puzzle_id)
+    return jsonify({"liked": liked, "like_count": updated.get("like_count", 0)}), 200
 
 
 @main.route("/import", methods=["GET"])
