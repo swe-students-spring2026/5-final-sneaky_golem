@@ -5,7 +5,6 @@ And ...
 """
 
 import os
-import ssl
 
 # import uuid
 from datetime import datetime, timezone
