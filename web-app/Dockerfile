@@ -10,8 +10,6 @@ COPY Pipfile Pipfile.lock ./
 # Install pipenv
 RUN pip install pipenv
 
-COPY Pipfile Pipfile.lock ./
-
 # Install dependencies into system (not virtualenv)
 RUN pipenv install --system --deploy
 

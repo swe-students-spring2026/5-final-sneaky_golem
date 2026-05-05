@@ -19,9 +19,10 @@ function restart() {
 		}
 	}
 	board = structuredClone(boardStart);
-	console.log(boardStart);
-	//console.log(queueData);
+	//console.log(boardStart);
+	console.log(queueData);
 	queue = [...queueData];
+	console.log(queue);
 	rot = 0;
 	piece = '';
 	holdP = '';
@@ -35,7 +36,7 @@ function restart() {
     oldb2b = b2b;
 	b2b = -1;
 	log = [];
-	newPiece();
+	newPiece()
 }
 
 function updateQueue() {
@@ -119,10 +120,9 @@ function shuffleQueuePlusHold() {
 	restart();
 }
 
-function setBoard(){
-	newPiece();
+function setBoard(setter){
 	const data = prompt("Please enter a queue:");
-	const data2 = prompt("Please enter a board:").replace(/'/g, '"');;
+	const data2 = setter.replace(/'/g, '"');
 	parseBoard(JSON.parse(data2));
 	boardStart = structuredClone(board);
 	const dataArr = data.split('');
@@ -133,13 +133,6 @@ function setBoard(){
 		}
 		queue.push(dataArr[i].toUpperCase());
 	}
-	/*
-	while (queue.length < 10) {
-		var shuf = names.shuffle();
-		shuf.map((p) => queue.push(p));
-		queue.push('|');
-	}
-		*/
 	if(queue.length > 0 && queue[queue.length-1] != '|'){
 		queue.push('|');
 	}
@@ -153,7 +146,6 @@ function setBoard(){
 	updateGhost();
 	setShape();
 	updateHistory();
-	newPiece();
 }
 
 function logBoard(){
@@ -162,6 +154,28 @@ function logBoard(){
 
 function endPuzzle(){
 	console.log("wraps");
+	data = []
+	for(let i = 0; i < log.length; i++){
+		column = [];
+		for(let y = 0; y < log[i].length; y++){
+			row = []
+			for(let x = 0; x < log[i][y].length; x++){
+				block = log[i][y][x].c
+				if(block == ''){
+					block = "X";
+				}
+				else if(block == "X"){
+					block = "G";
+				}
+				row.push(block);
+			}
+			column.push(row);
+		}
+		data.push(column);
+	}
+	console.log(data);
+	console.log(log);
+	document.getElementById("solution-data").setAttribute("value", JSON.stringify(data));
 }
 
 function updateKickTable() {

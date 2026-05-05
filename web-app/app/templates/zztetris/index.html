@@ -14,7 +14,6 @@
 	<link rel="stylesheet" type="text/css" href="{{url_for('static', filename='zztetris/styles/paint_bucket.css')}}" />
 	<link rel="stylesheet" type="text/css" href="{{url_for('static', filename='zztetris/styles/import_export.css')}}" />
 	<link rel="stylesheet" type="text/css" href="{{url_for('static', filename='zztetris/styles/board_settings.css')}}" />
-	<!-- 
 	<head>
 		<meta charset="UTF-8" />
 		<meta property="og:type" content="website" />
@@ -29,8 +28,8 @@
 			content="https://cdn.discordapp.com/attachments/209687919361916928/898230618012418088/unknown.png"
 		/>
 		<title>ZZTetris</title>
+		<div id="board-data" data="{{puzzle.board_json}}"></div>
 	</head>
-	-->
 	<body style="background-color: #222; color: #fff">
 		<div style="top: 50%; left: 50%; position: fixed; transform: translate(-50%, -50%); display: flex">
 			<div class="queue">
@@ -56,9 +55,9 @@
 				<button class="button button--shuffle" onclick="this.blur(); setBoard();">
 					Set Board
 				</button>
-
-				<button class="button" onclick="this.blur(); mirror()">Mirror</button>
-				<button class="button" onclick="this.blur(); fullMirror()">Full Mirror</button>
+				<form action="/board/{{ puzzle._id }}" method="POST">
+					<button class="button" type="submit" name="solution-data" id="solution-data" value="">Save Solution</button>
+				</form>
 
 				<form class="paint-bucket" name="paintbucket">
 					<label for="X">

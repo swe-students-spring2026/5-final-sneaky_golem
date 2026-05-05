@@ -23,8 +23,12 @@ from app.services import (
     authenticate_user,
     temp_puzzle,
     get_puzzles,
-    get_puzzle_by_id
+    get_puzzle_by_id,
+    update_puzzle_solution,
+    get_solution_by_id
 )
+
+import json
 
 main = Blueprint('main', __name__)
 
@@ -94,10 +98,34 @@ def dashboard():
     """
     return render_template("dashboard.html", user=current_user, community_boards=get_puzzles())
 
-@main.route('/community/board/<puzzle_id>')
+@main.route('/board/<puzzle_id>', methods=["GET", "POST"])
 @login_required
 def community_puzzle(puzzle_id):
-    return render_template("saved_board.html", user=current_user, puzzle=get_puzzle_by_id(puzzle_id))
+    if request.method == "POST":
+        data = json.loads(request.form.get("solution-data", ""))
+        print(data)
+        update_puzzle_solution(puzzle_id, data, current_user.username)
+    solution_data = get_puzzle_by_id(puzzle_id)["solutions_json"]
+    for solution in solution_data:
+        del solution["steps"]
+    return render_template("saved_board.html", user=current_user, puzzle=get_puzzle_by_id(puzzle_id),
+                           board_json=get_puzzle_by_id(puzzle_id)["board_json"],
+                           solutions_json=json.dumps(solution_data, default=str),
+                           active_solution_json=get_puzzle_by_id(puzzle_id)["active_solution_json"],
+                           )
+
+@main.route('/board/<puzzle_id>/edit/solution')
+@login_required
+def puzzle_edit_solution(puzzle_id):
+    return render_template("zztetris/index.html", user=current_user, puzzle=get_puzzle_by_id(puzzle_id), board_json=json.dumps(get_puzzle_by_id(puzzle_id)["board_json"]))
+
+@main.route("/solution/<solution_id>", methods=["GET"])
+def get_solution(solution_id):
+    """
+    Fetching solution
+    """
+    print("FETCHED")
+    return json.dumps(get_solution_by_id(solution_id), default=str)
 
 @main.route("/tetris", methods=["GET"])
 def tetris_board():

@@ -30,8 +30,21 @@ class Puzzle():
         self.puzzle_name = puzzle_doc["puzzle_name"],
         self.author_id = str(puzzle_doc["author_id"]),
         self.created_at = str(puzzle_doc["created_at"]),
+        self.board_json = puzzle_doc["board_json"],
+        self.solutions_json = puzzle_doc["board_json"],
+        self.active_solution_json = puzzle_doc["active_solution_json"],
         self.is_public = puzzle_doc["is_public"],
         self.like_count = puzzle_doc["like_count"]
+
+class Solution():
+    def __init__(self, solution_doc):
+        self.puzzle_id = str(solution_doc["puzzle_id"]),
+        self.solution_name = solution_doc["solution_name"],
+        self.author_username = solution_doc["author_username"],
+        self.like_count = solution_doc["like_count"],
+        self.created_at = solution_doc["created_at"],
+        self.final_board = solution_doc["final_board"],
+        self.steps = solution_doc["steps"]
 
 def get_db():
     """
@@ -111,6 +124,9 @@ def temp_puzzle():
         "puzzle_name": "Puzzle 1",
         "author_id": "TEST!",
         "created_at": datetime(2026, 5, 4, 4, 10, 23),
+        "board_json": [['X', 'X', 'X', 'X', 'X', 'X', 'G', 'G', 'G', 'G'], ['X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X'], ['X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X'], ['X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X'], ['X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X'], ['L', 'X', 'X', 'X', 'X', 'X', 'I', 'I', 'I', 'I'], ['L', 'X', 'X', 'X', 'X', 'T', 'X', 'Z', 'X', 'X'], ['L', 'L', 'O', 'O', 'T', 'T', 'Z', 'Z', 'X', 'X'], ['Z', 'Z', 'O', 'O', 'J', 'T', 'Z', 'S', 'X', 'X'], ['G', 'G', 'G', 'G', 'G', 'G', 'G', 'G', 'X', 'G'], ['G', 'G', 'G', 'G', 'G', 'G', 'G', 'G', 'X', 'G'], ['G', 'G', 'G', 'G', 'G', 'G', 'X', 'G', 'G', 'G'], ['G', 'G', 'G', 'G', 'G', 'G', 'X', 'G', 'G', 'G'], ['G', 'G', 'G', 'G', 'G', 'G', 'X', 'G', 'G', 'G'], ['G', 'G', 'G', 'G', 'G', 'G', 'X', 'G', 'G', 'G'], ['G', 'G', 'G', 'G', 'G', 'G', 'X', 'G', 'G', 'G'], ['G', 'G', 'G', 'G', 'G', 'G', 'X', 'G', 'G', 'G'], ['G', 'G', 'G', 'X', 'G', 'G', 'G', 'G', 'G', 'G'], ['G', 'G', 'G', 'G', 'G', 'G', 'G', 'X', 'G', 'G'], ['G', 'G', 'G', 'G', 'G', 'G', 'G', 'X', 'G', 'G']],
+        "solutions_json": [],
+        "active_solution_json": [],
         "is_public": True,
         "like_count": 42,
     }
@@ -124,4 +140,26 @@ def get_puzzles():
 
 def get_puzzle_by_id(id):
     db = get_db()
-    return db.puzzles.find({'_id': ObjectId(id)})
+    return db.puzzles.find_one({'_id': ObjectId(id)})
+
+def update_puzzle_solution(id, data, username):
+    while len(data) > 20:
+        data.pop(0)
+    db = get_db()
+    doc = {
+        "puzzle_id": ObjectId(id),
+        "solution_name": "TESTER",
+        "author_username": username,
+        "like_count": 0,
+        "created_at": datetime.now(),
+        "final_board": data[len(data) - 1],
+        "steps": data
+    }
+    result = db.solutions.insert_one(doc)
+    doc["_id"] = result.inserted_id
+    Solution(doc)
+    db.puzzles.update_one({"_id": ObjectId(id)}, {"$push": {"solutions_json": doc}})
+
+def get_solution_by_id(id):
+    db = get_db()
+    return db.solutions.find_one({'_id': ObjectId(id)})

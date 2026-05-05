@@ -4,7 +4,7 @@
 
 {% block content %}
 <h1 class="page-title">{{ puzzle.puzzle_name }}</h1>
-<script id="data-puzzle-id"       type="application/json">"{{ puzzle.puzzle_id }}"</script>
+<script id="data-puzzle-id"       type="application/json">"{{ puzzle._id }}"</script>
 <script id="data-board"           type="application/json">{{ board_json | safe }}</script>
 <script id="data-solutions"       type="application/json">{{ solutions_json | safe }}</script>
 <script id="data-active-solution" type="application/json">{{ active_solution_json | safe }}</script>
@@ -20,13 +20,15 @@
 
         <div class="sidebar-section">
         <label class="sidebar-label">EDIT</label>
-        <a href="/board/{{ puzzle.puzzle_id }}/edit"
+        <a href="/board/{{ puzzle._id }}/edit"
             class="btn" style="display:block; text-align:center;">OPEN EDITOR</a>
+        <a href="/board/{{ puzzle._id }}/edit/solution"
+            class="btn" style="display:block; text-align:center;">OPEN SOLUTION EDITOR</a>
         </div>
 
         <div class="sidebar-section">
         <label class="sidebar-label">SHARE</label>
-        <a href="/board/{{ puzzle.puzzle_id }}/share"
+        <a href="/board/{{ puzzle._id }}/share"
             class="btn" style="display:block; text-align:center;">SHARE WITH COMMUNITY</a>
         </div>
     </div>

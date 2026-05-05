@@ -295,6 +295,7 @@ a {
 .board-cell[data-piece="Z"] { background: #f00000; border-color: #c00000; }
 .board-cell[data-piece="J"] { background: #0000f0; border-color: #0000c0; }
 .board-cell[data-piece="L"] { background: #f0a000; border-color: #c07800; }
+.board-cell[data-piece="G"] { background: #999999; border-color: #999999; }
 
 .btn:disabled,
 .ctrl-btn:disabled {
