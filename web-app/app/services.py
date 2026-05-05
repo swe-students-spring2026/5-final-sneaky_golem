@@ -152,3 +152,23 @@ def get_puzzle_by_id(puzzle_id):
     """
     db = get_db()
     return db.puzzles.find({"_id": ObjectId(puzzle_id)})
+
+
+def save_puzzle(author_id, puzzle_name, board, is_public=True):
+    """
+    Persist a board matrix as a puzzle document.
+    """
+    db = get_db()
+    doc = {
+        "puzzle_name": puzzle_name,
+        "author_id": author_id,
+        "board_json": board,  # the 20×10 mino matrix
+        "solutions_json": [],
+        "active_solution_json": None,
+        "created_at": datetime.now(timezone.utc),
+        "is_public": is_public,
+        "like_count": 0,
+    }
+    result = db.puzzles.insert_one(doc)
+    doc["_id"] = result.inserted_id
+    return Puzzle(doc)
