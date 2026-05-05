@@ -51,9 +51,6 @@ def logged_in_client(client, mock_user, mocker):
     return client
 
 
-# --- GET /login ---
-
-
 def test_login_page_loads(client):
     res = client.get("/login")
     assert res.status_code == 200
@@ -64,9 +61,6 @@ def test_login_page_has_form(client):
     res = client.get("/login")
     assert b"username" in res.data.lower()
     assert b"password" in res.data.lower()
-
-
-# --- POST /login ---
 
 
 def test_login_success_redirects_to_dashboard(client, mock_user, mocker):
@@ -124,9 +118,6 @@ def test_login_empty_username(client, mocker):
     assert b"invalid" in res.data.lower()
 
 
-# --- GET /register ---
-
-
 def test_register_page_loads(client):
     res = client.get("/register")
     assert res.status_code == 200
@@ -137,9 +128,6 @@ def test_register_page_has_form(client):
     res = client.get("/register")
     assert b"username" in res.data.lower()
     assert b"password" in res.data.lower()
-
-
-# --- POST /register ---
 
 
 def test_register_success(client, mock_user, mocker):
@@ -224,9 +212,6 @@ def test_register_username_taken(client, mocker):
 
     assert res.status_code == 200
     assert b"taken" in res.data.lower()
-
-
-# --- GET /logout ---
 
 
 def test_logout_redirects_to_login(logged_in_client):
