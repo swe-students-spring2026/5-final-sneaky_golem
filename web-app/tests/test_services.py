@@ -23,6 +23,14 @@ from app.services import (
     delete_puzzle,
     rename_puzzle,
     serialize_board,
+    get_all_community_boards,
+    get_solution_by_id,
+    serialize_solution,
+    has_liked,
+    like_puzzle,
+    unlike_puzzle,
+    set_puzzle_public,
+    temp_puzzle,
 )
 
 
@@ -383,3 +391,234 @@ def test_get_saved_boards_empty(mock_db):
 
     boards = get_saved_boards("user123")
     assert boards == []
+
+
+# ---- get_all_community_boards ----
+
+
+def test_get_all_community_boards_returns_list(mock_db):
+    oid = ObjectId()
+    user_oid = ObjectId()
+    mock_db.puzzles.count_documents.return_value = 1
+    mock_db.puzzles.find.return_value.sort.return_value.skip.return_value.limit.return_value = [
+        {
+            "_id": oid,
+            "puzzle_name": "Public Board",
+            "is_public": True,
+            "created_at": "2026-01-01",
+            "like_count": 2,
+            "author_id": str(user_oid),
+        }
+    ]
+    mock_db.users.find_one.return_value = {"username": "alice"}
+
+    boards, total = get_all_community_boards()
+    assert total == 1
+    assert len(boards) == 1
+    assert boards[0]["puzzle_name"] == "Public Board"
+    assert boards[0]["author_username"] == "alice"
+
+
+def test_get_all_community_boards_empty(mock_db):
+    mock_db.puzzles.count_documents.return_value = 0
+    mock_db.puzzles.find.return_value.sort.return_value.skip.return_value.limit.return_value = (
+        []
+    )
+
+    boards, total = get_all_community_boards()
+    assert total == 0
+    assert not boards
+
+
+def test_get_all_community_boards_search_filter(mock_db):
+    mock_db.puzzles.count_documents.return_value = 0
+    mock_db.puzzles.find.return_value.sort.return_value.skip.return_value.limit.return_value = (
+        []
+    )
+
+    get_all_community_boards(search="tetris")
+    query = mock_db.puzzles.count_documents.call_args[0][0]
+    assert "puzzle_name" in query
+
+
+def test_get_all_community_boards_unknown_author(mock_db):
+    oid = ObjectId()
+    mock_db.puzzles.count_documents.return_value = 1
+    mock_db.puzzles.find.return_value.sort.return_value.skip.return_value.limit.return_value = [
+        {
+            "_id": oid,
+            "puzzle_name": "Board",
+            "is_public": True,
+            "created_at": "2026-01-01",
+            "like_count": 0,
+            "author_id": None,
+        }
+    ]
+
+    boards, _ = get_all_community_boards()
+    assert boards[0]["author_username"] == "unknown"
+
+
+def test_get_all_community_boards_sort_likes(mock_db):
+    mock_db.puzzles.count_documents.return_value = 0
+    mock_db.puzzles.find.return_value.sort.return_value.skip.return_value.limit.return_value = (
+        []
+    )
+
+    get_all_community_boards(sort="likes")
+    mock_db.puzzles.find.assert_called_once()
+
+
+# ---- get_solution_by_id ----
+
+
+def test_get_solution_by_id_found(mock_db):
+    oid = ObjectId()
+    mock_db.solutions.find_one.return_value = {"_id": oid, "solution_name": "Sol 1"}
+
+    result = get_solution_by_id(str(oid))
+    assert result["solution_name"] == "Sol 1"
+
+
+def test_get_solution_by_id_not_found(mock_db):
+    mock_db.solutions.find_one.return_value = None
+
+    result = get_solution_by_id(str(ObjectId()))
+    assert result is None
+
+
+# ---- serialize_solution ----
+
+
+def test_serialize_solution_without_steps(mock_db):
+    oid = ObjectId()
+    doc = {
+        "_id": oid,
+        "solution_name": "My Sol",
+        "author_username": "alice",
+        "like_count": 3,
+        "created_at": "2026-01-01",
+        "final_board": [["X"] * 10] * 20,
+        "steps": [["step1"], ["step2"]],
+    }
+    result = serialize_solution(doc, include_steps=False)
+    assert result["solution_name"] == "My Sol"
+    assert result["author_username"] == "alice"
+    assert "steps" not in result
+
+
+def test_serialize_solution_with_steps(mock_db):
+    oid = ObjectId()
+    doc = {
+        "_id": oid,
+        "solution_name": "My Sol",
+        "author_username": "alice",
+        "like_count": 3,
+        "created_at": "2026-01-01",
+        "final_board": [["X"] * 10] * 20,
+        "steps": [["step1"], ["step2"]],
+    }
+    result = serialize_solution(doc, include_steps=True)
+    assert "steps" in result
+    assert result["steps"] == [["step1"], ["step2"]]
+
+
+def test_serialize_solution_solution_id(mock_db):
+    oid = ObjectId()
+    doc = {
+        "_id": oid,
+        "solution_name": "Sol",
+        "author_username": "bob",
+        "like_count": 0,
+        "created_at": "2026-01-01",
+        "final_board": [],
+        "steps": [],
+    }
+    result = serialize_solution(doc)
+    assert result["solution_id"] == str(oid)
+
+
+# ---- has_liked ----
+
+
+def test_has_liked_true(mock_db):
+    mock_db.likes.find_one.return_value = {"user_id": "u1", "puzzle_id": "p1"}
+
+    result = has_liked("u1", "p1")
+    assert result is True
+
+
+def test_has_liked_false(mock_db):
+    mock_db.likes.find_one.return_value = None
+
+    result = has_liked("u1", "p1")
+    assert result is False
+
+
+# ---- like_puzzle ----
+
+
+def test_like_puzzle_new_like(mock_db):
+    puzzle_id = str(ObjectId())
+    mock_db.likes.find_one.return_value = None
+
+    like_puzzle("u1", puzzle_id)
+    mock_db.likes.insert_one.assert_called_once()
+    mock_db.puzzles.update_one.assert_called_once()
+
+
+def test_like_puzzle_already_liked(mock_db):
+    mock_db.likes.find_one.return_value = {"user_id": "u1", "puzzle_id": "p1"}
+
+    like_puzzle("u1", "p1")
+    mock_db.likes.insert_one.assert_not_called()
+    mock_db.puzzles.update_one.assert_not_called()
+
+
+# ---- unlike_puzzle ----
+
+
+def test_unlike_puzzle_existing_like(mock_db):
+    puzzle_id = str(ObjectId())
+    mock_db.likes.delete_one.return_value.deleted_count = 1
+
+    unlike_puzzle("u1", puzzle_id)
+    mock_db.likes.delete_one.assert_called_once()
+    mock_db.puzzles.update_one.assert_called_once()
+
+
+def test_unlike_puzzle_not_liked(mock_db):
+    mock_db.likes.delete_one.return_value.deleted_count = 0
+
+    unlike_puzzle("u1", "p1")
+    mock_db.likes.delete_one.assert_called_once()
+    mock_db.puzzles.update_one.assert_not_called()
+
+
+# ---- set_puzzle_public ----
+
+
+def test_set_puzzle_public_true(mock_db):
+    oid = ObjectId()
+    set_puzzle_public(str(oid), True)
+    set_payload = mock_db.puzzles.update_one.call_args[0][1]["$set"]
+    assert set_payload["is_public"] is True
+
+
+def test_set_puzzle_public_false(mock_db):
+    oid = ObjectId()
+    set_puzzle_public(str(oid), False)
+    set_payload = mock_db.puzzles.update_one.call_args[0][1]["$set"]
+    assert set_payload["is_public"] is False
+
+
+# ---- temp_puzzle ----
+
+
+def test_temp_puzzle_inserts(mock_db, mocker):
+    oid = ObjectId()
+    mock_db.puzzles.insert_one.return_value = mocker.MagicMock(inserted_id=oid)
+
+    puzzle = temp_puzzle()
+    mock_db.puzzles.insert_one.assert_called_once()
+    assert puzzle.puzzle_id[0] == str(oid)
