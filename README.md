@@ -2,7 +2,7 @@
 ![Machine Learning Client CI](https://github.com/swe-students-spring2026/5-final-sneaky_golem/actions/workflows/ml-client.yml/badge.svg)
 
 # Tetruzzle
-Project description here. Fix this later!
+Tetruzzle is an community where users can share Tetris puzzles with one another! Either build your own board or upload a screenshot from TETR.IO, select the piece queue, and upload and share. Users can also submit their own solutions to these puzzles, allowing players to learn how others stack their way out of a difficult situation.
 
 ## Container Images
 - [web app container](https://hub.docker.com/repository/docker/ah6820/golem-web-app)
@@ -45,9 +45,9 @@ Build and start the application.
 docker compose up -d --build
 ```
 
-The web application will be available at [http://localhost:5000](http://localhost:5000).
+If run locally, the web application will be available at [http://localhost:5000](http://localhost:5000).
 
-It will also be available elsewhere once we deploy it with DigitalOcean. Note to fix this later!
+It is also available on DigitalOcean [here](https://golem-ml-client-xo5il.ondigitalocean.app/).
 
 #### Stop the system
 
@@ -62,6 +62,7 @@ docker compose down
 | `MONGO_URI` | MongoDB connection string | `mongodb://mongodb:27017` |
 | `MONGO_DBNAME` | MongoDB database name | `golem-db` |
 | `SECRET_KEY` | Secret Key for Auth | `watch_tv` |
+| `ML_CLIENT_URL` | Base URL for the ML Client | `http://machine-learning-client:5001`
 
 ## Task boards
 Our task board is available [here](https://github.com/orgs/swe-students-spring2026/projects/128).
