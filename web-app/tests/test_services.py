@@ -2,7 +2,7 @@
 Tests for service functions in app.services.
 """
 
-# pylint: disable=missing-docstring, redefined-outer-name
+# pylint: disable=missing-docstring, redefined-outer-name, unused-argument
 
 import pytest
 from bson import ObjectId
