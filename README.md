@@ -2,7 +2,7 @@
 ![Machine Learning Client CI](https://github.com/swe-students-spring2026/5-final-sneaky_golem/actions/workflows/ml-client.yml/badge.svg)
 
 # Tetruzzle
-Tetruzzle is an community where users can share Tetris puzzles with one another! Either build your own board or upload a screenshot from TETR.IO, select the piece queue, and upload and share. Users can also submit their own solutions to these puzzles, allowing players to learn how others stack their way out of a difficult situation.
+Tetruzzle is a community where users can share Tetris puzzles with one another! Either build your own board or upload a screenshot from TETR.IO, select the piece queue, and upload and share. Users can also submit their own solutions to these puzzles, allowing players to learn how others stack their way out of a difficult situation.
 
 ## Container Images
 - [web app container](https://hub.docker.com/repository/docker/ah6820/golem-web-app)
