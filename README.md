@@ -118,5 +118,7 @@ docker compose down
 | `SECRET_KEY` | Secret Key for Auth | `watch_tv` |
 | `ML_CLIENT_URL` | Base URL for the ML Client | `http://localhost:5001/`
 
+Note: In our deployed web-app, `MONGO_URI` is set to point to our MongoDB Atlas cluster and `ML_CLIENT_URL` is set to point to the internal service hostname assigned by App Platform. 
+
 ## Task boards
 Our task board is available [here](https://github.com/orgs/swe-students-spring2026/projects/128).
