@@ -15,6 +15,60 @@ Tetruzzle is an community where users can share Tetris puzzles with one another!
 - Simon Ni [Github](https://github.com/narezin/)
 - Tim Xu [Github](https://github.com/timxu2006/)
 
+## Architecture
+```
+Tetruzzle is composed of three subsystems, each running as an independent containerized service:
+┌─────────────────────────────────────────────────────────┐
+│                        User Browser                     │
+└─────────────────────┬───────────────────────────────────┘
+                      │ HTTP
+┌─────────────────────────────────────────────────────────┐
+│                  Web App (Flask)                        │
+│  - User authentication (Flask-Login)                    │
+│  - Board editor and viewer                              │
+│  - Community board sharing                              │
+│  - Forwards images to ML Client                         │
+└──────────┬──────────────────────────┬───────────────────┘
+           │ HTTP (internal)          │ PyMongo
+┌─────────────────────┐   ┌───────────────────────────────┐
+│  ML Client (Flask)  │   │     MongoDB (Atlas)           │
+│  - Receives base64  │   │  - users collection           │
+│    image via POST   │   │  - puzzles collection         │
+│  - OpenCV parsing   │   │  - solutions collection       │
+│  - Returns 10×20    │   │  - likes collection           │
+│    board matrix     │   │                               │
+└─────────────────────┘   └───────────────────────────────┘
+```
+
+## System flow
+
+### Board Import Flow
+The board import flow is the core feature that distinguishes Tetruzzle from a simple board editor. It documents how a raw image travels across two separate services — the web app and the ML client — before becoming structured, editable data, illustrating the microservice boundary in action.
+```
+User uploads screenshot
+        ↓
+Web App encodes image as base64
+        ↓
+Web App POSTs to ML Client /extract-board
+        ↓
+ML Client decodes image → OpenCV detects grid → identifies piece colors
+        ↓
+ML Client returns board as a matrix
+        ↓
+Web App renders board preview for user to confirm or edit
+        ↓
+User confirms → board saved to MongoDB
+```
+### Authentication Flow
+```
+User registers / logs in
+        ↓
+Web App hashes password (Werkzeug) → stores in MongoDB users collection
+        ↓
+Flask-Login manages session via SECRET_KEY-signed cookie
+        ↓
+All protected routes require @login_required
+```
 ## Configuration Instructions
 
 ### Requirements
@@ -62,7 +116,7 @@ docker compose down
 | `MONGO_URI` | MongoDB connection string | `mongodb://mongodb:27017` |
 | `MONGO_DBNAME` | MongoDB database name | `golem-db` |
 | `SECRET_KEY` | Secret Key for Auth | `watch_tv` |
-| `ML_CLIENT_URL` | Base URL for the ML Client | `http://machine-learning-client:5001`
+| `ML_CLIENT_URL` | Base URL for the ML Client | `http://localhost:5001/`
 
 ## Task boards
 Our task board is available [here](https://github.com/orgs/swe-students-spring2026/projects/128).
