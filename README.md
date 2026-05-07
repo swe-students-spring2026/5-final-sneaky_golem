@@ -122,3 +122,6 @@ Note: In our deployed web-app, `MONGO_URI` is set to point to our MongoDB Atlas 
 
 ## Task boards
 Our task board is available [here](https://github.com/orgs/swe-students-spring2026/projects/128).
+
+## Acknowledgements
+Thank you to swng for allowing us to use his Tetris client, ZZTetris, so that we didn't have to reinvent the wheel and re-program the Tetris game logic. You can find the source code for ZZTetris [here](https://github.com/swng/zztetris).
