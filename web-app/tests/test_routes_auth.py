@@ -185,3 +185,21 @@ def test_logout_clears_session(logged_in_client):
     res = logged_in_client.get("/", follow_redirects=False)
     assert res.status_code == 302
     assert "/login" in res.headers["Location"]
+
+
+# ---- /dashboard ----
+
+
+def test_dashboard_requires_login(client):
+    res = client.get("/dashboard", follow_redirects=False)
+    assert res.status_code == 302
+    assert "/login" in res.headers["Location"]
+
+
+def test_dashboard_loads_when_logged_in(logged_in_client, mocker):
+    mocker.patch("app.routes.get_saved_boards", return_value=[])
+    mocker.patch("app.routes.get_community_boards", return_value=[])
+
+    res = logged_in_client.get("/dashboard")
+    assert res.status_code == 200
+    assert b"dashboard" in res.data.lower()
